@@ -39,7 +39,7 @@ class TestReport(TestCase):
     def test_search_monitor(self):
 
         request = Report("calp-vwebrepo", "8081")
-        cursor = request.search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+        cursor = request._search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
                                 datetime.strptime("2022-03-01 20:01:00", "%Y-%m-%d %H:%M:%S"),
                                 "OE/ObservingEngine", "siderealTime")
 
@@ -51,21 +51,46 @@ class TestReport(TestCase):
     def test_search_magnitude(self):
 
         request = Report("calp-vwebrepo", "8081")
-        cursor = request.search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
-                                datetime.strptime("2022-03-31 20:01:00", "%Y-%m-%d %H:%M:%S"),
+        cursor = request._search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                datetime.strptime("2022-03-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
                                 "OE/ObservingEngine", "currentObservingState", q_type="magnitude")
         for c in cursor:
             print(c)
 
         assert cursor
 
+    def test_search_monitor_set(self):
 
-    def test_storaged_query_description(self):
+        query = \
+            [
+                {
+                    "component": "MACS.AzimuthAxis",
+                    "monitor": "position",
+                    "epsilon": 0.5,
+                    "type": "monitor"
+                },
+                {
+                    "component": "MACS.AzimuthAxis",
+                    "monitor": "followingError",
+                    "epsilon": 0.00002,
+                    "type": "monitor"
+                }
+            ]
 
         request = Report("calp-vwebrepo", "8081")
-        description = request.search_storaged_query(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+        cursor = request.search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                datetime.strptime("2022-03-01 20:00:10", "%Y-%m-%d %H:%M:%S"),
+                                query)
+
+        for c in cursor:
+            print(c)
+
+    def test_search_stored_query(self):
+
+        request = Report("calp-vwebrepo", "8081")
+        description = request.search_stored_query(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
                                 datetime.strptime("2022-03-31 20:01:00", "%Y-%m-%d %H:%M:%S"),
-                                "axis_following_error")
+                                "Emir")
         assert description
 
 

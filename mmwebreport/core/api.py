@@ -20,7 +20,7 @@ def _parse_raw_test(text):
 
     text_header = ','.join(text[3].replace("/", ".").split(",")[1:])
     # todo extract all metadata
-    text_header = re.sub(r"\(.*\)", "", text_header)
+    text_header = re.sub(r"\([^)]*\)", "", text_header)
 
     text_body = [','.join(line.split(",")[1:]) for line in text[4:]]
     text_body = '\n'.join(text_body)
@@ -100,8 +100,9 @@ class Report(object):
 
         return search_uri_part
 
-    def _parse_single_monitor(self, monitor, q_type="monitor"):
+    def _parse_single_monitor(self, monitor, q_type):
 
+        #todo exception if q_type not found
         query_parsed = ""
         if q_type == "monitor":
             query_parsed = _QUERY_MONITOR_TOKEN
@@ -111,10 +112,25 @@ class Report(object):
 
         return query_parsed
 
-    def _search_description(self, q_data_ini, q_data_end, q_component, monitor, q_type="monitor"):
+    def _parse_monitors( self, a_query):
+        query_monitor_uri = ""
+
+        if isinstance(a_query, (list, tuple)):
+            for q in a_query:
+                m = self.get_monitor(q["component"].replace('.', '/'), q["monitor"], q["type"])
+                query_monitor_uri = query_monitor_uri + self._parse_single_monitor(m, q["type"]) + "&"
+            query_monitor_uri = query_monitor_uri[:-1]
+        else:
+            m = self.get_monitor(a_query["component"].replace('.', '/'), a_query["monitor"], a_query["type"])
+
+            query_monitor_uri = self._parse_single_monitor(a_query, m["type"])
+
+        return query_monitor_uri
+
+    def _search_description(self, q_data_ini, q_data_end, q_query):
         url = self._base_url + "/search/metadata"
         url = url + self._parse_search(q_data_ini, q_data_end)
-        url = url + self._parse_single_monitor(monitor, q_type)
+        url = url + self._parse_monitors(q_query)
         url = url + "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
 
         executor = Executor(url)
@@ -122,30 +138,31 @@ class Report(object):
 
         return json.loads(description)
 
+    def _search(self, q_data_ini, q_data_end, q_component, q_monitor, q_type="monitor"):
+
+        query = [{"component": q_component, "monitor": q_monitor, "epsilon": 0.5, "type": q_type}]
+        return self.search(q_data_ini, q_data_end, query)
+
     def search_description(self, q_data_ini, q_data_end, q_component, q_monitor, q_type="monitor"):
 
-        monitor = self.get_monitor(q_component, q_monitor)
-        description = self._search_description(q_data_ini, q_data_end, q_component, monitor, q_type)
+        query = [{"component": q_component, "monitor": q_monitor, "epsilon": 0.5, "type": q_type}]
+        return self._search_description(q_data_ini, q_data_end, query)
 
-        return description
-
-    def search(self, q_data_ini, q_data_end, q_component, q_monitor, q_type="monitor"):
-
-        monitor = self.get_monitor(q_component, q_monitor, q_type)
+    def search(self, q_data_ini, q_data_end, q_query):
 
         search_monitor_description \
-            = self._search_description(q_data_ini, q_data_end, q_component, monitor, q_type)
+            = self._search_description(q_data_ini, q_data_end, q_query)
 
         url = self._parse_search(q_data_ini, q_data_end)
-        url = url + self._parse_single_monitor(monitor, q_type)
+        url = url + self._parse_monitors(q_query)
 
         a_cursor = Cursor(self._base_url, url, search_monitor_description["totalPages"])
 
         return a_cursor
 
-    def search_storaged_query(self, q_data_ini, q_data_end, q_query_name):
+    def search_stored_query(self, q_data_ini, q_data_end, q_query_name):
 
-        url = self._base_url + "/query/query/"
+        url = self._base_url + "/query/"
         url = url + q_query_name
         url = url + self._parse_search(q_data_ini, q_data_end)
         url = url + "&" + _QUERY_PAGE_START_TOKEN + "=" + str(0)
