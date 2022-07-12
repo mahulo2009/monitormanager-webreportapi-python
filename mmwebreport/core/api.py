@@ -13,8 +13,6 @@ _QUERY_MAGNITUDE_TOKEN = "idmagnitud"
 _QUERY_PAGE_START_TOKEN = "page"
 _QUERY_PAGE_LENGTH_TOKEN = "length"
 
-
-
 _DEFAULT_SAMPLES_PER_PAGE = 30000
 
 def _parse_raw_test(text):
@@ -50,9 +48,10 @@ class Cursor(object):
                     "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
 
         executor = Executor(url)
-        samples = executor.run()
+        data = executor.run()
 
-        header, body = _parse_raw_test(samples)
+        header, body = _parse_raw_test(data)
+
         self._current += 1
 
         return header + '\n' + body
@@ -112,7 +111,7 @@ class Report(object):
 
         return query_parsed
 
-    def _search_monitor_description(self, q_data_ini, q_data_end, q_component, monitor, q_type="monitor"):
+    def _search_description(self, q_data_ini, q_data_end, q_component, monitor, q_type="monitor"):
         url = self._base_url + "/search/metadata"
         url = url + self._parse_search(q_data_ini, q_data_end)
         url = url + self._parse_single_monitor(monitor, q_type)
@@ -123,10 +122,10 @@ class Report(object):
 
         return json.loads(description)
 
-    def search_monitor_description(self, q_data_ini, q_data_end, q_component, q_monitor, q_type="monitor"):
+    def search_description(self, q_data_ini, q_data_end, q_component, q_monitor, q_type="monitor"):
 
         monitor = self.get_monitor(q_component, q_monitor)
-        description = self._search_monitor_description(q_data_ini, q_data_end, q_component, monitor, q_type)
+        description = self._search_description(q_data_ini, q_data_end, q_component, monitor, q_type)
 
         return description
 
@@ -135,7 +134,7 @@ class Report(object):
         monitor = self.get_monitor(q_component, q_monitor, q_type)
 
         search_monitor_description \
-            = self._search_monitor_description(q_data_ini, q_data_end, q_component, monitor, q_type)
+            = self._search_description(q_data_ini, q_data_end, q_component, monitor, q_type)
 
         url = self._parse_search(q_data_ini, q_data_end)
         url = url + self._parse_single_monitor(monitor, q_type)
@@ -143,3 +142,20 @@ class Report(object):
         a_cursor = Cursor(self._base_url, url, search_monitor_description["totalPages"])
 
         return a_cursor
+
+    def search_storaged_query(self, q_data_ini, q_data_end, q_query_name):
+
+        url = self._base_url + "/query/query/"
+        url = url + q_query_name
+        url = url + self._parse_search(q_data_ini, q_data_end)
+        url = url + "&" + _QUERY_PAGE_START_TOKEN + "=" + str(0)
+        url = url + "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
+
+        #todo continue here
+        print(url)
+
+        #executor = Executor(url)
+        #description = executor.run()
+
+        #return json.loads(description)
+

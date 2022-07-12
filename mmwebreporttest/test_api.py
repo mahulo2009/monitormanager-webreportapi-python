@@ -30,8 +30,8 @@ class TestReport(TestCase):
     def test_search_description(self):
 
         request = Report("calp-vwebrepo", "8081")
-        description = request.search_monitor_description(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S") ,
-                                datetime.strptime("2022-03-01 20:01:00", "%Y-%m-%d %H:%M:%S") ,
+        description = request.search_description(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                 datetime.strptime("2022-03-01 20:01:00", "%Y-%m-%d %H:%M:%S"),
                                 "OE/ObservingEngine", "siderealTime")
 
         assert description
@@ -58,6 +58,15 @@ class TestReport(TestCase):
             print(c)
 
         assert cursor
+
+
+    def test_storaged_query_description(self):
+
+        request = Report("calp-vwebrepo", "8081")
+        description = request.search_storaged_query(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                datetime.strptime("2022-03-31 20:01:00", "%Y-%m-%d %H:%M:%S"),
+                                "axis_following_error")
+        assert description
 
 
 
