@@ -85,13 +85,19 @@ class TestReport(TestCase):
         for c in cursor:
             print(c)
 
+    def test_search_description_stored_query(self):
+
+        request = Report("calp-vwebrepo", "8081")
+        description = request.search_stored_description(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                datetime.strptime("2022-03-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
+                                "axis_following_error")
+        assert description
+
     def test_search_stored_query(self):
 
         request = Report("calp-vwebrepo", "8081")
-        description = request.search_stored_query(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
-                                datetime.strptime("2022-03-31 20:01:00", "%Y-%m-%d %H:%M:%S"),
-                                "Emir")
-        assert description
-
-
-
+        cursor = request.search_stored_query(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                datetime.strptime("2022-03-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
+                                "axis_following_error")
+        for c in cursor:
+            print(c)

@@ -43,7 +43,7 @@ class Cursor(object):
         if self._current >= self._pages:
             raise StopIteration
 
-        url = self._base_url + "/download" + self._url + \
+        url = self._base_url + self._url + \
                     "&" + _QUERY_PAGE_START_TOKEN + "=" + str(self._current) + \
                     "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
 
@@ -96,9 +96,19 @@ class Report(object):
         search_uri_part = ""
         search_uri_part = search_uri_part + q_date_ini.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
         search_uri_part = search_uri_part + q_date_end.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
+        #todo this is sampled period
         search_uri_part = search_uri_part + "/0?"
 
         return search_uri_part
+
+    #todo this new method will replace _parser_search when the sampling period is better specified
+    def _parse_search_clean(self, q_date_ini, q_date_end):
+        search_uri_part = ""
+        search_uri_part = search_uri_part + q_date_ini.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
+        search_uri_part = search_uri_part + q_date_end.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
+        search_uri_part = search_uri_part + "?"
+        return search_uri_part
+
 
     def _parse_single_monitor(self, monitor, q_type):
 
@@ -153,26 +163,38 @@ class Report(object):
         search_monitor_description \
             = self._search_description(q_data_ini, q_data_end, q_query)
 
-        url = self._parse_search(q_data_ini, q_data_end)
+        url = "/download"
+        url = url + self._parse_search(q_data_ini, q_data_end)
         url = url + self._parse_monitors(q_query)
 
         a_cursor = Cursor(self._base_url, url, search_monitor_description["totalPages"])
 
         return a_cursor
 
-    def search_stored_query(self, q_data_ini, q_data_end, q_query_name):
+    def search_stored_description(self, q_data_ini, q_data_end, q_query_name):
 
-        url = self._base_url + "/query/"
+        url = self._base_url + "/query/metadata/"
         url = url + q_query_name
-        url = url + self._parse_search(q_data_ini, q_data_end)
+        url = url + self._parse_search_clean(q_data_ini, q_data_end)
         url = url + "&" + _QUERY_PAGE_START_TOKEN + "=" + str(0)
         url = url + "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
 
-        #todo continue here
-        print(url)
+        executor = Executor(url)
+        description = executor.run()
 
-        #executor = Executor(url)
-        #description = executor.run()
+        return json.loads(description)
 
-        #return json.loads(description)
+    def search_stored_query(self, q_data_ini, q_data_end, q_query_name):
 
+        search_monitor_description \
+            = self.search_stored_description(q_data_ini, q_data_end, q_query_name)
+
+        url = "/query/download/"
+        url = url + q_query_name
+        url = url + self._parse_search_clean(q_data_ini, q_data_end)
+        url = url + "&" + _QUERY_PAGE_START_TOKEN + "=" + str(0)
+        url = url + "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
+
+        a_cursor = Cursor(self._base_url, url, search_monitor_description["totalPages"])
+
+        return a_cursor
