@@ -15,6 +15,7 @@ _QUERY_PAGE_LENGTH_TOKEN = "length"
 
 _DEFAULT_SAMPLES_PER_PAGE = 30000
 
+
 def _parse_raw_test(text):
     text = text.split('\n')
 
@@ -44,8 +45,8 @@ class Cursor(object):
             raise StopIteration
 
         url = self._base_url + self._url + \
-                    "&" + _QUERY_PAGE_START_TOKEN + "=" + str(self._current) + \
-                    "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
+              "&" + _QUERY_PAGE_START_TOKEN + "=" + str(self._current) + \
+              "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
 
         executor = Executor(url)
         data = executor.run()
@@ -58,6 +59,7 @@ class Cursor(object):
 
     def size(self):
         return self._pages
+
 
 class Report(object):
 
@@ -96,12 +98,12 @@ class Report(object):
         search_uri_part = ""
         search_uri_part = search_uri_part + q_date_ini.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
         search_uri_part = search_uri_part + q_date_end.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
-        #todo this is sampled period
+        # todo this is sampled period
         search_uri_part = search_uri_part + "/0?"
 
         return search_uri_part
 
-    #todo this new method will replace _parser_search when the sampling period is better specified
+    # todo this new method will replace _parser_search when the sampling period is better specified
     def _parse_search_clean(self, q_date_ini, q_date_end):
         search_uri_part = ""
         search_uri_part = search_uri_part + q_date_ini.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
@@ -109,10 +111,9 @@ class Report(object):
         search_uri_part = search_uri_part + "?"
         return search_uri_part
 
-
     def _parse_single_monitor(self, monitor, q_type):
 
-        #todo exception if q_type not found
+        # todo exception if q_type not found
         query_parsed = ""
         if q_type == "monitor":
             query_parsed = _QUERY_MONITOR_TOKEN
@@ -122,7 +123,7 @@ class Report(object):
 
         return query_parsed
 
-    def _parse_monitors( self, a_query):
+    def _parse_monitors(self, a_query):
         query_monitor_uri = ""
 
         if isinstance(a_query, (list, tuple)):
