@@ -60,7 +60,7 @@ class RetrieveMonitor(object):
 
         if not exists(file_name):
 
-            data_frame = pd.read_csv(io.StringIO(cursor.to_csv()), sep=",")
+            data_frame = pd.read_csv(io.StringIO(cursor.run().to_csv()), sep=",")
             data_frame.to_csv(file_name, index=False, compression='infer')
         else:
             data_frame = pd.read_csv(file_name)

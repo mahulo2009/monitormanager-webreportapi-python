@@ -6,7 +6,6 @@ from mmwebreport.retrieve.retrieve import RetrieveMonitor
 
 class TestRetrieveMonitor(TestCase):
     def test_run(self):
-
         query = \
             [
                 {
@@ -26,5 +25,5 @@ class TestRetrieveMonitor(TestCase):
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081",
                                    datetime.strptime("2022-03-01 23:50:00", "%Y-%m-%d %H:%M:%S"),
                                    datetime.strptime("2022-03-02 00:00:00", "%Y-%m-%d %H:%M:%S"),
-                                   query,"test1")
+                                   query, "test1")
         retrieve.retrieve_daily()

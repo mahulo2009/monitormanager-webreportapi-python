@@ -1,8 +1,4 @@
-import re
-
 from mmwebreport.core.executor import Executor
-
-import json
 
 _QUERY_DESCRIPTION_MONITOR_TOKEN = "monitors"
 _QUERY_DESCRIPTION_MAGNITUDE_TOKEN = "magnitud"
@@ -52,16 +48,16 @@ class Report(object):
     def get_components(self):
         url = self._base_url + "/components"
         executor = Executor(url)
-        components = executor.run()
+        response = executor.run()
 
-        return json.loads(components)
+        return response.to_json()
 
     def get_component(self, q_component):
         url = self._base_url + "/components/" + q_component
         executor = Executor(url)
-        component = executor.run()
+        response = executor.run()
 
-        return json.loads(component)
+        return response.to_json()
 
     def get_monitor(self, q_component, q_monitor, q_type="monitor"):
 
@@ -71,11 +67,12 @@ class Report(object):
 
         url = self._base_url + "/components/" + q_component + "/" + query_parsed + "/" + q_monitor
         executor = Executor(url)
-        monitor = executor.run()
+        response = executor.run()
 
-        return json.loads(monitor)
+        return response.to_json()
 
     def _parse_search(self, q_date_ini, q_date_end):
+
         search_uri_part = ""
         search_uri_part = search_uri_part + q_date_ini.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
         search_uri_part = search_uri_part + q_date_end.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
@@ -86,10 +83,12 @@ class Report(object):
 
     # todo this new method will replace _parser_search when the sampling period is better specified
     def _parse_search_clean(self, q_date_ini, q_date_end):
+
         search_uri_part = ""
         search_uri_part = search_uri_part + q_date_ini.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
         search_uri_part = search_uri_part + q_date_end.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
         search_uri_part = search_uri_part + "?"
+
         return search_uri_part
 
     def _parse_single_monitor(self, monitor, q_type):
@@ -105,6 +104,7 @@ class Report(object):
         return query_parsed
 
     def _parse_monitors(self, a_query):
+
         query_monitor_uri = ""
 
         if isinstance(a_query, (list, tuple)):
@@ -120,15 +120,16 @@ class Report(object):
         return query_monitor_uri
 
     def _search_description(self, q_data_ini, q_data_end, q_query):
+
         url = self._base_url + "/search/metadata"
         url = url + self._parse_search(q_data_ini, q_data_end)
         url = url + self._parse_monitors(q_query)
         url = url + "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
 
         executor = Executor(url)
-        description = executor.run()
+        response = executor.run()
 
-        return json.loads(description)
+        return response.to_json()
 
     def _search(self, q_data_ini, q_data_end, q_component, q_monitor, q_type="monitor"):
 
@@ -162,9 +163,9 @@ class Report(object):
         url = url + "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
 
         executor = Executor(url)
-        description = executor.run()
+        response = executor.run()
 
-        return json.loads(description)
+        return response.to_json()
 
     def search_stored_query(self, q_data_ini, q_data_end, q_query_name):
 
