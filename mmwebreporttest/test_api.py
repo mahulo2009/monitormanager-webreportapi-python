@@ -44,7 +44,7 @@ class TestReport(TestCase):
                                 "OE/ObservingEngine", "siderealTime")
 
         for c in cursor:
-            print(c)
+            print(c.to_csv())
 
         assert cursor
 
@@ -55,7 +55,7 @@ class TestReport(TestCase):
                                 datetime.strptime("2022-03-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
                                 "OE/ObservingEngine", "currentObservingState", q_type="magnitude")
         for c in cursor:
-            print(c)
+            print(c.to_csv())
 
         assert cursor
 
@@ -83,7 +83,7 @@ class TestReport(TestCase):
                                 query)
 
         for c in cursor:
-            print(c)
+            print(c.to_csv())
 
     def test_search_description_stored_query(self):
 
@@ -100,4 +100,4 @@ class TestReport(TestCase):
                                 datetime.strptime("2022-03-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
                                 "axis_following_error")
         for c in cursor:
-            print(c)
+            print(c.to_csv())

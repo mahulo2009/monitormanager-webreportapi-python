@@ -15,20 +15,6 @@ _QUERY_PAGE_LENGTH_TOKEN = "length"
 
 _DEFAULT_SAMPLES_PER_PAGE = 30000
 
-
-def _parse_raw_test(text):
-    text = text.split('\n')
-
-    text_header = ','.join(text[3].replace("/", ".").split(",")[1:])
-    # todo extract all metadata
-    text_header = re.sub(r"\([^)]*\)", "", text_header)
-
-    text_body = [','.join(line.split(",")[1:]) for line in text[4:]]
-    text_body = '\n'.join(text_body)
-
-    return text_header, text_body
-
-
 class Cursor(object):
 
     def __init__(self, base_url, url, pages, initial_page=0):
@@ -48,14 +34,9 @@ class Cursor(object):
               "&" + _QUERY_PAGE_START_TOKEN + "=" + str(self._current) + \
               "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
 
-        executor = Executor(url)
-        data = executor.run()
-
-        header, body = _parse_raw_test(data)
-
         self._current += 1
 
-        return header + '\n' + body
+        return Executor(url)
 
     def size(self):
         return self._pages

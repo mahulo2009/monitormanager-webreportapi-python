@@ -60,7 +60,7 @@ class RetrieveMonitor(object):
 
         if not exists(file_name):
 
-            data_frame = pd.read_csv(io.StringIO(cursor), sep=",")
+            data_frame = pd.read_csv(io.StringIO(cursor.to_csv()), sep=",")
             data_frame.to_csv(file_name, index=False, compression='infer')
         else:
             data_frame = pd.read_csv(file_name)
@@ -100,7 +100,7 @@ class RetrieveMonitor(object):
 
     def _filter_similar(self, date_ini, date_end, monitor, data_frame):
 
-        file_name = self.make_filter_file_name(date_ini, date_end, monitor['component'] + "." + monitor['monitor'])
+        file_name = self._make_filter_file_name(date_ini, date_end, monitor['component'] + "." + monitor['monitor'])
         if not exists(file_name):
             if monitor["type"] == "monitors":
                 data_frame = \
