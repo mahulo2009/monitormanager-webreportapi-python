@@ -23,15 +23,15 @@ class TestReport(TestCase):
     def test_get_monitor(self):
 
         request = Report("calp-vwebrepo", "8081")
-        monitor = request.get_monitor("OE/ObservingEngine", "siderealTime")
+        monitor = request.get_monitor_configuration("OE/ObservingEngine", "siderealTime")
 
         assert monitor
 
     def test_search_description(self):
 
         request = Report("calp-vwebrepo", "8081")
-        description = request.search_description(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
-                                                 datetime.strptime("2022-03-01 20:01:00", "%Y-%m-%d %H:%M:%S"),
+        description = request.search_info(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                          datetime.strptime("2022-03-01 20:01:00", "%Y-%m-%d %H:%M:%S"),
                                 "OE/ObservingEngine", "siderealTime")
 
         assert description
@@ -39,8 +39,8 @@ class TestReport(TestCase):
     def test_search_monitor(self):
 
         request = Report("calp-vwebrepo", "8081")
-        cursor = request._search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
-                                datetime.strptime("2022-03-01 20:01:00", "%Y-%m-%d %H:%M:%S"),
+        cursor = request.single_search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                       datetime.strptime("2022-03-01 20:01:00", "%Y-%m-%d %H:%M:%S"),
                                 "OE/ObservingEngine", "siderealTime")
 
         for c in cursor:
@@ -51,8 +51,8 @@ class TestReport(TestCase):
     def test_search_magnitude(self):
 
         request = Report("calp-vwebrepo", "8081")
-        cursor = request._search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
-                                datetime.strptime("2022-03-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
+        cursor = request.single_search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                       datetime.strptime("2022-03-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
                                 "OE/ObservingEngine", "currentObservingState", q_type="magnitude")
         for c in cursor:
             print(c.run().to_csv())
@@ -81,15 +81,15 @@ class TestReport(TestCase):
         cursor = request.search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
                                 datetime.strptime("2022-03-01 20:00:10", "%Y-%m-%d %H:%M:%S"),
                                 query)
-
+        assert cursor
         for c in cursor:
             print(c.run().to_csv())
 
     def test_search_description_stored_query(self):
 
         request = Report("calp-vwebrepo", "8081")
-        description = request.search_stored_description(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
-                                datetime.strptime("2022-03-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
+        description = request.search_stored_info(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                 datetime.strptime("2022-03-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
                                 "axis_following_error")
         assert description
 
@@ -99,5 +99,7 @@ class TestReport(TestCase):
         cursor = request.search_stored_query(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
                                 datetime.strptime("2022-03-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
                                 "axis_following_error")
+
+        assert cursor
         for c in cursor:
             print(c.run().to_csv())
