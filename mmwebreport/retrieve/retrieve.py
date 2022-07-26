@@ -10,6 +10,12 @@ from mmwebreport.core.api import Report
 
 
 class RetrieveMonitor(object):
+    """
+    A class used to make a high level request to the Monitor Manager Web Report, with the following functionality:
+
+        1) ...
+
+    """
 
     def __init__(self, host, port, q_data_ini, q_data_end, q_query, q_name):
 
@@ -19,6 +25,70 @@ class RetrieveMonitor(object):
         self._query = q_query
         self._path = os.path.expanduser("~") + "/.cache/webreport/" + q_name + "/"
         # self.cursor = self.request.search(q_data_ini,q_data_end,q_query)
+
+    def retrieve_daily(self):
+        """
+        From date initial to date final iterate over a set of monitor making individual request inside a time interval.
+
+        For example, iterate from date1 to date2, making individual request between time1 and time2.
+
+        """
+        date_range_ini = datetime.combine(self._date_ini, self._date_ini.time())
+        # todo be carefully when the time range is in the same day, not plus 1 day.
+        date_range_end = datetime.combine(self._date_ini, self._date_end.time()) + timedelta(days=1)
+
+        while date_range_ini < self._date_end:
+
+            for idx, monitor in enumerate(self._query):
+                self._run(date_range_ini, date_range_end, monitor)
+
+            date_range_ini = date_range_ini + timedelta(days=1)
+            date_range_end = date_range_end + timedelta(days=1)
+
+    def _run(self, date_ini, date_end, q_entry):
+        """
+        Given the time interval and a query entry create a data frame with the result, filtered by similar values. The
+        request result is cached in disk.
+
+        :param date_ini: The search request initial date and time.
+        :param date_end: The search request end date and time.
+        :param q_entry: The search request query entry.
+            {
+                "component": "MACS.AzimuthAxis",
+                "monitor": "position",
+                "epsilon": 0.5,
+                "type": "monitor"
+            }
+
+        :return: a data frame for this request, filtering the similar values base on epsilon monitor param.
+        """
+
+        data_frame = self._from_cursor_get_raw(date_ini, date_end, q_entry)
+        data_frame = self._filter_similar(date_ini, date_end, q_entry, data_frame)
+
+        return data_frame
+
+    def _from_cursor_get_raw(self, date_ini, date_end, monitor):
+        """
+
+        :param date_ini:
+        :param date_end:
+        :param monitor:
+        :return:
+        """
+
+        cursor = self.request.search(date_ini, date_end, [monitor])
+
+        data_frames_page = []
+        for page, c in enumerate(cursor):  # todo cursor is executed but if file exits it should not (split execution)
+
+            data_frame = self._from_cursor_get_raw_n_page(date_ini, date_end, monitor, page, c)
+            data_frames_page.append(data_frame)
+
+        data_frame = pd.concat(data_frames_page, ignore_index=True, sort=False)
+
+        return data_frame
+
 
     def _make_raw_file_name(self, date_ini, date_end, a_id, page=None):
 
@@ -67,19 +137,6 @@ class RetrieveMonitor(object):
 
         return data_frame
 
-    def _from_cursor_get_raw(self, date_ini, date_end, monitor):
-
-        cursor = self.request.search(date_ini, date_end, [monitor])
-
-        data_frames_page = []
-        for page, c in enumerate(cursor):  # todo cursor is executed but if file exits it should not (split execution)
-
-            data_frame = self._from_cursor_get_raw_n_page(date_ini, date_end, monitor, page, c)
-            data_frames_page.append(data_frame)
-
-        data_frame = pd.concat(data_frames_page, ignore_index=True, sort=False)
-
-        return data_frame
 
     def _remove_similar_consecutive_values(self, data_frame, monitor_name, epsilon):
 
@@ -113,25 +170,4 @@ class RetrieveMonitor(object):
 
         return data_frame
 
-    def _run(self, date_ini, date_end, monitor):
 
-        data_frame = self._from_cursor_get_raw(date_ini, date_end, monitor)
-        data_frame = self._filter_similar(date_ini, date_end, monitor, data_frame)
-
-        return data_frame
-
-    def retrieve_daily(self):
-
-        date_range_ini = datetime.combine(self._date_ini, self._date_ini.time())
-        # todo be carefully when the time range is in the same day, not plus 1 day.
-        date_range_end = datetime.combine(self._date_ini, self._date_end.time()) + timedelta(days=1)
-
-        while date_range_ini < self._date_end:
-
-            for idx, monitor in enumerate(self._query):
-                print(date_range_ini, date_range_end, idx, monitor)
-
-                self._run(date_range_ini, date_range_end, monitor)
-
-            date_range_ini = date_range_ini + timedelta(days=1)
-            date_range_end = date_range_end + timedelta(days=1)
