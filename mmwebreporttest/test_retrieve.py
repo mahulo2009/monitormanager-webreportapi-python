@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest import TestCase
 
 import pandas as pd
+import logging
 
 from mmwebreport.retrieve.retrieve import RetrieveMonitor
 
@@ -27,12 +28,11 @@ class TestRetrieveMonitor(TestCase):
 
         data = {'a_monitor': [1, 1.1, 1.2, 1.3, 1.4, 1.6]}
         data_frame = pd.DataFrame(data=data)
-        data_frame = retrieve._remove_similar_consecutive_values(data_frame, "a_monitor", 0.1)
+        data_frame = _remove_similar_consecutive_values(data_frame, "a_monitor", 0.1)
 
         assert data_frame.size == 4
 
     def test_make_time_intervals(self):
-
         query = \
             [
                 {
@@ -49,9 +49,57 @@ class TestRetrieveMonitor(TestCase):
                                    datetime.strptime("20:00:00", "%H:%M:%S"),
                                    datetime.strptime("07:00:00", "%H:%M:%S"),
                                    query, "study_0")
-        retrieve._make_time_intervals()
+        _make_time_intervals()
 
-    def test_retrieve_hourly(self):
+    def test_retrieve_raw(self):
+        logging.basicConfig(level=logging.INFO)
+
+        query = \
+            {
+                "component": "MACS.AzimuthAxis",
+                "monitor": "position",
+                "epsilon": 0.5,
+                "type": "monitor"
+            }
+
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081",
+                                   datetime.strptime("2022-07-01", "%Y-%m-%d"),
+                                   datetime.strptime("2022-07-03", "%Y-%m-%d"),
+                                   datetime.strptime("23:15:00", "%H:%M:%S"),
+                                   datetime.strptime("01:30:00", "%H:%M:%S"),
+                                   query, "study_0")
+
+        data_frame = retrieve.retrieve_raw(datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                           datetime.strptime("2022-07-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
+                                           query)
+
+        print(data_frame)
+
+    def test_retrieve_filtered(self):
+        logging.basicConfig(level=logging.INFO)
+
+        query = \
+            {
+                "component": "MACS.AzimuthAxis",
+                "monitor": "position",
+                "epsilon": 0.5,
+                "type": "monitor"
+            }
+
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081",
+                                   datetime.strptime("2022-07-01", "%Y-%m-%d"),
+                                   datetime.strptime("2022-07-03", "%Y-%m-%d"),
+                                   datetime.strptime("23:15:00", "%H:%M:%S"),
+                                   datetime.strptime("01:30:00", "%H:%M:%S"),
+                                   query, "study_0")
+
+        data_frame = retrieve.retrieve_filtered(datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                query)
+
+    def test_retrieve_summary(self):
+        logging.basicConfig(level=logging.INFO)
+
         query = \
             [
                 {
@@ -111,9 +159,13 @@ class TestRetrieveMonitor(TestCase):
             ]
 
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081",
-                                   datetime.strptime("2022-07-01", "%Y-%m-%d"),
-                                   datetime.strptime("2022-07-03", "%Y-%m-%d"),
-                                   datetime.strptime("23:15:00", "%H:%M:%S"),
-                                   datetime.strptime("01:30:00", "%H:%M:%S"),
-                                   query, "study_0")
-        retrieve.retrieve_hourly()
+                                   datetime.strptime("2022-03-01", "%Y-%m-%d"),
+                                   datetime.strptime("2022-03-31", "%Y-%m-%d"),
+                                   datetime.strptime("20:00:00", "%H:%M:%S"),
+                                   datetime.strptime("07:00:00", "%H:%M:%S"),
+                                   query, "march_2022_following_error")
+        data_frame = retrieve.retrieve_summary()
+
+        data_frame.to_parquet('/tmp/df.parquet.gzip', compression='gzip')
+
+        #print(data_frame)
