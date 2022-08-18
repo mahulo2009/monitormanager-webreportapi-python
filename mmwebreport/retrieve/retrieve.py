@@ -18,17 +18,12 @@ class RetrieveMonitor(object):
     todo
     """
 
-    def __init__(self, host, port, q_data_ini, q_data_end, q_time_ini, q_time_end, q_query, q_name):
+    def __init__(self, host, port, q_query, q_name):
         self.request = Report(host, port)
-        self._date_ini = q_data_ini
-        self._date_end = q_data_end
-        self._time_ini = q_time_ini
-        self._time_end = q_time_end
         self._query = q_query
         self._query_name = q_name
         self._path = os.path.expanduser("~") + "/.cache/webreport/monitormanager"
 
-    #todo not working with pages.
     def retrieve_raw(self, date_ini, date_end, q_entry):
         """
         Given the time interval and a query entry create a data frame with the result. The request result
@@ -58,9 +53,9 @@ class RetrieveMonitor(object):
             logging.info("Retrieve monitor path %s ", os.path.dirname(path))
             if not exists(os.path.dirname(path)):
                 os.makedirs(os.path.dirname(path))
-            if exists(os.path.dirname(path) + "/query.json") and \
+            if exists(os.path.dirname(path) + "/query"+str(page)+".json") and \
                     cache.compare_raw_query(cache.build_query(date_ini, date_end, self._query_name, [q_entry], page),
-                                            cache.read_query(os.path.dirname(path))):
+                                            cache.read_query(os.path.dirname(path), page)):
                 logging.info("Retrieve monitor from cache %s ", path)
                 data_frame = pd.read_csv(path, compression='infer')
             else:
@@ -143,7 +138,7 @@ class RetrieveMonitor(object):
                 logging.info("Retrieve %s %s %s ",  date_ini, date_end, monitor)
                 data_frame = self.retrieve_filtered(date_ini, date_end, monitor)
                 data_frame = _convert(data_frame)
-                data_frame = _filter(data_frame, self._date_ini, self._time_ini, self._date_end, self._time_end)
+                data_frame = _filter(data_frame, date_ini, date_end)
                 data_frames_hourly.append(data_frame)
             logging.info("Merge hours %s %s ",  date_ini, date_end)
             data_frame = _merge_data_frames(data_frames_hourly)
@@ -151,16 +146,16 @@ class RetrieveMonitor(object):
             cache.store_query(os.path.dirname(path),  date_ini, date_end, "study_0", self._query)
         return data_frame
 
-    def retrieve_summary(self):
+    def retrieve_summary(self, date_ini, date_end):
         logging.info("Retrieve summary")
 
-        path = cache.make_path_summary_query(self._path, self._date_ini, self._date_end, self._query_name)
+        path = cache.make_path_summary_query(self._path, date_ini, date_end, self._query_name)
         logging.info("Retrieve path %s ", os.path.dirname(path))
 
         if not exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         if exists(os.path.dirname(path) + "/query.json") and \
-            cache.compare_summary_query(cache.build_query(self._date_ini, self._date_end,
+            cache.compare_summary_query(cache.build_query(date_ini, date_end,
                                                           self._query_name, self._query),
                                         cache.read_query(os.path.dirname(path))):
             logging.info("Retrieve monitor from cache %s ", path)
@@ -170,7 +165,7 @@ class RetrieveMonitor(object):
             logging.info("Retrieve monitor from API call")
 
             data_frames_monitors = []
-            time_intervals = _make_time_intervals(self._date_ini, self._time_ini, self._date_end, self._time_end)
+            time_intervals = _make_time_intervals(date_ini, date_end)
             for time_interval in time_intervals:
                 logging.info("Retrieve hourly from %s to %s", time_interval[0], time_interval[1])
 
@@ -179,7 +174,7 @@ class RetrieveMonitor(object):
 
             data_frame = _merge_data_frames(data_frames_monitors)
             data_frame.to_csv(path, index=False, compression='infer')
-            cache.store_query(os.path.dirname(path), self._date_ini, self._date_end, "study_0", self._query)
+            cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", self._query)
 
         return data_frame
 
@@ -188,7 +183,6 @@ class RetrieveMonitor(object):
     # do chache of summary by day and store informatio to know if necessary to reproduce.
     # Include a summary of the process of download.
     # include a progress bar
-    # include a log file
 
     #wildcard, all the active monitor for a device..
     #all the bla bla...

@@ -50,16 +50,17 @@ def _merge_data_frames(data_frames):
     return data_frame
 
 
-def _filter(data_frame, q_data_ini, q_time_ini, q_data_end, q_time_end):
+def _filter(data_frame, q_data_ini, q_data_end):
 
     data_frame = data_frame[
-        (data_frame['TimeStampLong'] >= datetime.combine(q_data_ini, q_time_ini.time())) &
-        (data_frame['TimeStampLong'] < datetime.combine(q_data_end, q_time_end.time()))]
+        (data_frame['TimeStampLong'] >= q_data_ini) &
+        (data_frame['TimeStampLong'] < q_data_end) ]
 
     return data_frame
 
 
-def _make_time_intervals(q_data_ini, q_time_ini, q_data_end, q_time_end):
+#todo method not working
+def _make_time_intervals(q_data_ini, q_data_end):
     """
     It creates a list of hourly time interval between the date initial and date final. For example:
 
@@ -83,12 +84,11 @@ def _make_time_intervals(q_data_ini, q_time_ini, q_data_end, q_time_end):
     """
     time_intervals = []
 
-    #todo when in the same day not working
-    num_days = (q_data_end - q_data_ini).days
+    num_days = (q_data_end - q_data_ini).days + 1
     for day in range(0, num_days):
-        hour_pivot = q_time_ini.hour
-        time_end_hour = q_time_end.hour + (
-            0 if q_time_end.minute == 0 and q_time_end.second == 0 else 1)
+        hour_pivot = q_data_ini.hour
+        time_end_hour = q_data_end.hour + (
+            0 if q_data_end.minute == 0 and q_data_end.second == 0 else 1)
         while (hour_pivot % 24) != time_end_hour:
             a_interval_ini = datetime(q_data_ini.year,
                                       q_data_ini.month,

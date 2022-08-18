@@ -4,6 +4,7 @@ from unittest import TestCase
 import pandas as pd
 import logging
 
+from mmwebreport.retrieve.processing import _remove_similar_consecutive_values, _make_time_intervals
 from mmwebreport.retrieve.retrieve import RetrieveMonitor
 
 
@@ -33,23 +34,11 @@ class TestRetrieveMonitor(TestCase):
         assert data_frame.size == 4
 
     def test_make_time_intervals(self):
-        query = \
-            [
-                {
-                    "component": "MACS.AzimuthAxis",
-                    "monitor": "position",
-                    "epsilon": 0.5,
-                    "type": "monitor"
-                }
-            ]
+        time_interval = _make_time_intervals(datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                             datetime.strptime("2022-07-01 23:00:00", "%Y-%m-%d %H:%M:%S"))
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081",
-                                   datetime.strptime("2022-03-01", "%Y-%m-%d"),
-                                   datetime.strptime("2022-03-31", "%Y-%m-%d"),
-                                   datetime.strptime("20:00:00", "%H:%M:%S"),
-                                   datetime.strptime("07:00:00", "%H:%M:%S"),
-                                   query, "study_0")
-        _make_time_intervals()
+        for ti in time_interval:
+            print(ti)
 
     def test_retrieve_raw(self):
         logging.basicConfig(level=logging.INFO)
@@ -62,15 +51,10 @@ class TestRetrieveMonitor(TestCase):
                 "type": "monitor"
             }
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081",
-                                   datetime.strptime("2022-07-01", "%Y-%m-%d"),
-                                   datetime.strptime("2022-07-03", "%Y-%m-%d"),
-                                   datetime.strptime("23:15:00", "%H:%M:%S"),
-                                   datetime.strptime("01:30:00", "%H:%M:%S"),
-                                   query, "study_0")
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
 
-        data_frame = retrieve.retrieve_raw(datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
-                                           datetime.strptime("2022-07-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
+        data_frame = retrieve.retrieve_raw(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
+                                           datetime.strptime("2022-07-01 23:00:00", "%Y-%m-%d %H:%M:%S"),
                                            query)
 
         print(data_frame)
@@ -86,16 +70,13 @@ class TestRetrieveMonitor(TestCase):
                 "type": "monitor"
             }
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081",
-                                   datetime.strptime("2022-07-01", "%Y-%m-%d"),
-                                   datetime.strptime("2022-07-03", "%Y-%m-%d"),
-                                   datetime.strptime("23:15:00", "%H:%M:%S"),
-                                   datetime.strptime("01:30:00", "%H:%M:%S"),
-                                   query, "study_0")
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
 
-        data_frame = retrieve.retrieve_filtered(datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
-                                                datetime.strptime("2022-07-01 21:00:00", "%Y-%m-%d %H:%M:%S"),
+        data_frame = retrieve.retrieve_filtered(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 23:00:00", "%Y-%m-%d %H:%M:%S"),
                                                 query)
+
+        print(data_frame)
 
     def test_retrieve_summary(self):
         logging.basicConfig(level=logging.INFO)
@@ -158,14 +139,30 @@ class TestRetrieveMonitor(TestCase):
                 }
             ]
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081",
-                                   datetime.strptime("2022-03-01", "%Y-%m-%d"),
-                                   datetime.strptime("2022-03-31", "%Y-%m-%d"),
-                                   datetime.strptime("20:00:00", "%H:%M:%S"),
-                                   datetime.strptime("07:00:00", "%H:%M:%S"),
-                                   query, "march_2022_following_error")
-        data_frame = retrieve.retrieve_summary()
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "march_2022_following_error")
 
-        data_frame.to_parquet('/tmp/df.parquet.gzip', compression='gzip')
+        data_frame = retrieve.retrieve_summary(datetime.strptime("2022-07-01 00:00:00", "%Y-%m-%d %H:%M:%S"),
+                                               datetime.strptime("2022-07-02 00:00:00", "%Y-%m-%d %H:%M:%S"))
 
-        #print(data_frame)
+        print(data_frame)
+
+
+    def test_retrieve_raw_m1(self):
+
+        logging.basicConfig(level=logging.INFO)
+
+        query = \
+            {
+                "component": "M1CS/Stabilisation",
+                "monitor": "positionerPosition",
+                "epsilon": 0.5,
+                "type": "array"
+            }
+
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
+
+        data_frame = retrieve.retrieve_raw(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
+                                           datetime.strptime("2022-07-01 23:00:00", "%Y-%m-%d %H:%M:%S"),
+                                           query)
+
+        print(data_frame)

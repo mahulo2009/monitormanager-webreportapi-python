@@ -36,6 +36,7 @@ def make_path_filtered(root_path, date_ini, date_end, a_id):
 
     return path + "/" + file_name_monitor
 
+
 def make_path_summary_hourly(root_path, date_ini, date_end, query_name):
     path = root_path + "/" \
            + date_ini.strftime("%Y-%m-%d") + "/" + date_ini.strftime("%H") \
@@ -73,7 +74,7 @@ def make_path_summary_query(root_path, date_ini, date_end, query_name):
     return path + "/" + file_name_monitor
 
 
-def store_query(root_path, date_ini, date_end, query_name, query, page=None):
+def store_query(root_path, date_ini, date_end, query_name, query, page=''):
     query = {
         "date_ini": date_ini.strftime("%Y-%m-%d %H_%M_%S"),
         "date_end": date_end.strftime("%Y-%m-%d %H_%M_%S"),
@@ -84,12 +85,11 @@ def store_query(root_path, date_ini, date_end, query_name, query, page=None):
     if page is not None:
         query["page"] = page
 
-    with open(root_path + '/query.json', 'w') as outfile:
+    with open(root_path + '/query'+str(page)+'.json', 'w') as outfile:
         outfile.write(json.dumps(query))
 
 
 def build_query(date_ini, date_end, query_name, query, page=None):
-
     q = {
         "date_ini": date_ini.strftime("%Y-%m-%d %H_%M_%S"),
         "date_end": date_end.strftime("%Y-%m-%d %H_%M_%S"),
@@ -98,17 +98,17 @@ def build_query(date_ini, date_end, query_name, query, page=None):
     }
 
     if page is not None:
-        q["page"]=page
+        q["page"] = page
 
     return q
 
-def read_query(path):
-    with open(path + "/query.json") as json_file:
+
+def read_query(path, page=''):
+    with open(path + "/query" + str(page) + ".json") as json_file:
         return json.load(json_file)
 
 
 def compare_raw_query(q1, q2, index=0):
-
     equal = True
 
     equal = equal and (q1["date_ini"] == q2["date_ini"])
@@ -118,14 +118,13 @@ def compare_raw_query(q1, q2, index=0):
         equal = equal and (q1["query"][index]["monitor"] == q2["query"][index]["monitor"])
         equal = equal and (q1["query"][index]["type"] == q2["query"][index]["type"])
 
-#    if q1["page"] and q2["page"]:
-#        equal = equal and (q1["page"] == q2["page"])
+    #    if q1["page"] and q2["page"]:
+    #        equal = equal and (q1["page"] == q2["page"])
 
     return equal
 
 
 def compare_filtered_query(q1, q2, index=0):
-
     equal = compare_raw_query(q1, q2, index)
 
     if len(q1["query"]) > 0:
@@ -140,4 +139,3 @@ def compare_summary_query(q1, q2):
         equal = equal and compare_filtered_query(q1, q2, index)
 
     return equal
-
