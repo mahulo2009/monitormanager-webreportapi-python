@@ -102,7 +102,7 @@ class RetrieveMonitor(object):
         else:
             logging.info("Retrieve monitor from API call")
             data_frame = self.retrieve_raw(date_ini, date_end, q_entry)
-            if q_entry["type"] == "monitor":
+            if q_entry["type"] == "monitor" or q_entry["type"] == "array":
                 data_frame = _remove_similar_consecutive_values(data_frame,
                                                                 q_entry['component'] + "." + q_entry['monitor'],
                                                                 q_entry["epsilon"])

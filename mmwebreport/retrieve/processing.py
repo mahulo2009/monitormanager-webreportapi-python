@@ -4,6 +4,24 @@ import pandas as pd
 import logging
 
 def _remove_similar_consecutive_values(data_frame, monitor_name, epsilon):
+
+    if data_frame.size > 0:
+        to_remove = []
+
+        pivot = data_frame.loc[0][1:]
+        for idx, row in data_frame.iterrows():
+            if idx == 0:
+                continue
+            if ((pivot - row[1:]) ** 2).sum() ** 0.5 < epsilon:
+                to_remove.append(idx)
+            else:
+                pivot = row
+
+        data_frame.drop(to_remove, axis=0, inplace=True)
+
+    return data_frame
+
+#def _remove_similar_consecutive_values(data_frame, monitor_name, epsilon):
     """
     Give a data frame it removes the values consecutive that are similar.
 
@@ -13,21 +31,21 @@ def _remove_similar_consecutive_values(data_frame, monitor_name, epsilon):
 
     :return: a data frame where similar values, base on epsilon, were removed.
     """
-    if data_frame.size > 0:
-        to_remove = []
-
-        pivot = data_frame[monitor_name][0]
-        for idx, row in data_frame.iterrows():
-            if idx == 0:
-                continue
-            if abs(pivot - row[monitor_name]) < epsilon:
-                to_remove.append(idx)
-            else:
-                pivot = row[monitor_name]
-
-        data_frame.drop(to_remove, axis=0, inplace=True)
-
-    return data_frame
+    # if data_frame.size > 0:
+    #     to_remove = []
+    #
+    #     pivot = data_frame[monitor_name][0]
+    #     for idx, row in data_frame.iterrows():
+    #         if idx == 0:
+    #             continue
+    #         if abs(pivot - row[monitor_name]) < epsilon:
+    #             to_remove.append(idx)
+    #         else:
+    #             pivot = row[monitor_name]
+    #
+    #     data_frame.drop(to_remove, axis=0, inplace=True)
+    #
+    # return data_frame
 
 
 def _convert(data_frame):

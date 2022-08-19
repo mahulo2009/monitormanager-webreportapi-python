@@ -304,10 +304,13 @@ class Report(object):
         # todo exception if q_type not found
         query_parsed = ""
         if q_type == "monitor":
-            query_parsed = _QUERY_MONITOR_TOKEN
+            query_parsed = _QUERY_MONITOR_TOKEN + "=" + str(monitor["id"])
         elif q_type == "magnitude":
-            query_parsed = _QUERY_MAGNITUDE_TOKEN
-        query_parsed = query_parsed + "=" + str(monitor["id"])
+            query_parsed = _QUERY_MAGNITUDE_TOKEN + "=" + str(monitor["id"])
+        elif q_type == "array":
+            query_parsed = _QUERY_MONITOR_TOKEN + "=" + str(monitor["id"]) + "[[-1]]"
+        else:
+            raise "Type not supported"
 
         return query_parsed
 
