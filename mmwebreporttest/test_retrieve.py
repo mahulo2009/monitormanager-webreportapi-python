@@ -185,3 +185,77 @@ class TestRetrieveMonitor(TestCase):
 
         print(data_frame)
 
+
+    def test_retrieve_summary(self):
+        logging.basicConfig(level=logging.INFO)
+
+        query = \
+            [
+                {
+                    "component": "MACS.AzimuthAxis",
+                    "monitor": "position",
+                    "epsilon": 0.5,
+                    "type": "monitor"
+                },
+                {
+                    "component": "MACS.AzimuthAxis",
+                    "monitor": "followingError",
+                    "epsilon": 0.00002,
+                    "type": "monitor"
+                },
+                {
+                    "component": "MACS.ElevationAxis",
+                    "monitor": "position",
+                    "epsilon": 0.5,
+                    "type": "monitor"
+                },
+                {
+                    "component": "ECS.UpperShutter",
+                    "monitor": "actualPosition",
+                    "epsilon": 0.5,
+                    "type": "monitor"
+                },
+                {
+                    "component": "ECS.DomeRotation",
+                    "monitor": "actualPosition",
+                    "epsilon": 0.5,
+                    "type": "monitor"
+                },
+                {
+                    "component": "EMCS.WeatherStation",
+                    "monitor": "meanWindSpeed",
+                    "epsilon": 0.5,
+                    "type": "monitor"
+                },
+                {
+                    "component": "EMCS.WeatherStation",
+                    "monitor": "windDirection",
+                    "epsilon": 0.5,
+                    "type": "monitor"
+                },
+                {
+                    "component": "OE.ObservingEngine",
+                    "monitor": "slowGuideErrorA",
+                    "epsilon": 4.8e-07,
+                    "type": "monitor"
+                },
+                {
+                    "component": "OE.ObservingEngine",
+                    "monitor": "slowGuideErrorB",
+                    "epsilon": 4.8e-07,
+                    "type": "monitor"
+                },
+                {
+                    "component": "M1CS.Stabilisation",
+                    "monitor": "positionerPosition",
+                    "epsilon": 1500.0,
+                    "type": "array"
+                }
+
+            ]
+
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "march_2022_following_error")
+        data_frame = retrieve.sanity_check(query)
+
+        print(data_frame)
+

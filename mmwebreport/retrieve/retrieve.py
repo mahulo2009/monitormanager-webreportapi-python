@@ -53,7 +53,7 @@ class RetrieveMonitor(object):
             logging.info("Retrieve monitor path %s ", os.path.dirname(path))
             if not exists(os.path.dirname(path)):
                 os.makedirs(os.path.dirname(path))
-            if exists(os.path.dirname(path) + "/query"+str(page)+".json") and \
+            if exists(os.path.dirname(path) + "/query" + str(page) + ".json") and \
                     cache.compare_raw_query(cache.build_query(date_ini, date_end, self._query_name, [q_entry], page),
                                             cache.read_query(os.path.dirname(path), page)):
                 logging.info("Retrieve monitor from cache %s ", path)
@@ -122,28 +122,28 @@ class RetrieveMonitor(object):
         logging.info("Retrieve hourly")
 
         logging.info("Retrieve hourly from %s to %s", date_ini, date_end)
-        path = cache.make_path_summary_hourly(self._path,  date_ini, date_end, self._query_name)
+        path = cache.make_path_summary_hourly(self._path, date_ini, date_end, self._query_name)
         logging.info("Retrieve path %s ", os.path.dirname(path))
         if not exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         if exists(os.path.dirname(path) + "/query.json") and \
-            cache.compare_summary_query(cache.build_query( date_ini, date_end, self._query_name, self._query),
-                                        cache.read_query(os.path.dirname(path))):
+                cache.compare_summary_query(cache.build_query(date_ini, date_end, self._query_name, self._query),
+                                            cache.read_query(os.path.dirname(path))):
             logging.info("Retrieve monitor from cache %s ", path)
             data_frame = pd.read_csv(path, compression='infer')
         else:
             logging.info("Retrieve monitor from api call")
             data_frames_hourly = []
             for idx, monitor in enumerate(self._query):
-                logging.info("Retrieve %s %s %s ",  date_ini, date_end, monitor)
+                logging.info("Retrieve %s %s %s ", date_ini, date_end, monitor)
                 data_frame = self.retrieve_filtered(date_ini, date_end, monitor)
                 data_frame = _convert(data_frame)
                 data_frame = _filter(data_frame, date_ini, date_end)
                 data_frames_hourly.append(data_frame)
-            logging.info("Merge hours %s %s ",  date_ini, date_end)
+            logging.info("Merge hours %s %s ", date_ini, date_end)
             data_frame = _merge_data_frames(data_frames_hourly)
             data_frame.to_csv(path, index=False, compression='infer')
-            cache.store_query(os.path.dirname(path),  date_ini, date_end, "study_0", self._query)
+            cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", self._query)
         return data_frame
 
     def retrieve_summary(self, date_ini, date_end):
@@ -155,9 +155,9 @@ class RetrieveMonitor(object):
         if not exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         if exists(os.path.dirname(path) + "/query.json") and \
-            cache.compare_summary_query(cache.build_query(date_ini, date_end,
-                                                          self._query_name, self._query),
-                                        cache.read_query(os.path.dirname(path))):
+                cache.compare_summary_query(cache.build_query(date_ini, date_end,
+                                                              self._query_name, self._query),
+                                            cache.read_query(os.path.dirname(path))):
             logging.info("Retrieve monitor from cache %s ", path)
 
             data_frame = pd.read_csv(path, compression='infer')
@@ -178,13 +178,29 @@ class RetrieveMonitor(object):
 
         return data_frame
 
+    def sanity_check(self, a_query):
+
+        if not isinstance(a_query, (list, tuple)):
+            raise "Not a list"
+        else:
+            for e in a_query:
+                if not "component" in e: raise "Key component not in dict"
+                if not "monitor" in e: raise "Key monitor not in dict"
+                if not "epsilon" in e: raise "Key epsilon not in dict"
+                if not "type" in e: raise "Key type not in dict"
+
+                if not type(e['epsilon']) == float: raise "Epsilon should be float"
+                if not e['type'] in ["monitor", "array", "enum"]: raise "Type Not valid"
+
+
+
     # Todo
     # check parameters integrity.
     # do chache of summary by day and store informatio to know if necessary to reproduce.
     # Include a summary of the process of download.
     # include a progress bar
 
-    #wildcard, all the active monitor for a device..
-    #all the bla bla...
+    # wildcard, all the active monitor for a device..
+    # all the bla bla...
 
-    #todo reemplazar los NaN por valores iguales, antes y despues....
+    # todo reemplazar los NaN por valores iguales, antes y despues....
