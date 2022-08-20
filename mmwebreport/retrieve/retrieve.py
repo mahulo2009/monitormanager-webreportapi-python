@@ -215,3 +215,4 @@ class RetrieveMonitor(object):
     #todo include a progress bar
     #todo wildcard, all the active monitor for a device..
     #todo reemplazar los NaN por valores iguales, antes y despues....
+    #todo include enumerators type
