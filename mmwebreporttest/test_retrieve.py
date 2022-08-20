@@ -186,7 +186,7 @@ class TestRetrieveMonitor(TestCase):
         print(data_frame)
 
 
-    def test_retrieve_summary(self):
+    def test_sanity_check(self):
         logging.basicConfig(level=logging.INFO)
 
         query = \

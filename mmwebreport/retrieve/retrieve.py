@@ -192,15 +192,26 @@ class RetrieveMonitor(object):
                 if not type(e['epsilon']) == float: raise "Epsilon should be float"
                 if not e['type'] in ["monitor", "array", "enum"]: raise "Type Not valid"
 
+                try:
+                    config = self.request.get_monitor_configuration(q_component=e['component'].replace('.', '/'),
+                                                                    q_monitor=e['monitor'],
+                                                                    q_type=e['type'])
 
+                    if e['type'] in "array" and config["dimension_x"] == 1 and config["dimension_y"] == 1:
+                        raise "Monitor dimension incorrect"
 
-    # Todo
-    # check parameters integrity.
-    # do chache of summary by day and store informatio to know if necessary to reproduce.
-    # Include a summary of the process of download.
-    # include a progress bar
+                    print(config)
+                except:
+                    raise "Monitor does not exist"
 
-    # wildcard, all the active monitor for a device..
-    # all the bla bla...
-
-    # todo reemplazar los NaN por valores iguales, antes y despues....
+    #todo Check if monitor if active. This can be problematic if monitor was active at some point but not now.
+    #todo Inject the ID in the a_query. This mean later on it is not neccesary to ask for this value.
+    #todo Inject the unit in case the user does not defined ¿for doing this i will add support for units in query?.
+    #todo Inject epsilon in case the user does not defined, what happen if epsilon not in database, shall allow to not filter at all.
+    #todo ¿include subsampling option, check in this case if subsampling query make sanse with sample of monitor?
+    #todo ¿include range control for the values optinally? in this case populate ddbb correctly
+    #todo do chache of summary by day and store informatio to know if necessary to reproduce.
+    #todo Include a summary of the process of download.
+    #todo include a progress bar
+    #todo wildcard, all the active monitor for a device..
+    #todo reemplazar los NaN por valores iguales, antes y despues....
