@@ -104,13 +104,13 @@ class RetrieveMonitor(object):
             data_frame = self.retrieve_raw(date_ini, date_end, q_entry)
             if q_entry["type"] == "monitor" or q_entry["type"] == "array":
                 data_frame = _remove_similar_consecutive_values(data_frame,
-                                                                q_entry['component'] + "." + q_entry['monitor'],
-                                                                q_entry["epsilon"])
+                                                            q_entry['component'] + "." + q_entry['monitor'],
+                                                            q_entry["epsilon"])
                 data_frame.to_csv(path, index=False, compression='infer')
                 cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", [q_entry])
             else:
-                # todo enums
-                pass
+                data_frame.to_csv(path, index=False, compression='infer')
+                cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", [q_entry])
 
         return data_frame
 
@@ -189,8 +189,8 @@ class RetrieveMonitor(object):
                 if not "epsilon" in e: raise "Epsilon not specified."
                 if not "type" in e: raise "Type not specified."
 
-                if not type(e['epsilon']) == float: raise "Epsilon should be float"
-                if not e['type'] in ["monitor", "array", "enum"]:
+                if not (type(e['epsilon']) == float or type(e['epsilon']) == int): raise "Epsilon should be float"
+                if not e['type'] in ["monitor", "array", "magnitude"]:
                     raise "Not valid value for type should be: monitor, array or enum"
 
                 try:
@@ -214,4 +214,3 @@ class RetrieveMonitor(object):
     #todo include a progress bar
     #todo wildcard, all the active monitor for a device..
     #todo reemplazar los NaN por valores iguales, antes y despues....
-    #todo include enumerators type

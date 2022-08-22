@@ -72,6 +72,25 @@ class TestRetrieveMonitor(TestCase):
 
         print(data_frame)
 
+    def test_retrieve_raw_enum(self):
+        logging.basicConfig(level=logging.INFO)
+
+        query = \
+            {
+                "component": "OE.ObservingEngine",
+                "monitor": "currentObservingState",
+                "type": "magnitude"
+            }
+
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
+
+        data_frame = retrieve.retrieve_raw(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                query)
+
+        print(data_frame)
+
+
     def test_retrieve_filtered(self):
         logging.basicConfig(level=logging.INFO)
 
@@ -110,11 +129,39 @@ class TestRetrieveMonitor(TestCase):
 
         print(data_frame)
 
+    def test_retrieve_filtered_enum(self):
+
+        logging.basicConfig(level=logging.INFO)
+
+        query = \
+            {
+                "component": "OE.ObservingEngine",
+                "monitor": "currentObservingState",
+                "epsilon": 0,
+                "type": "magnitude"
+            }
+
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
+
+        data_frame = retrieve.retrieve_filtered(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                query)
+
+        print(data_frame)
+
+
+
     def test_retrieve_summary(self):
         logging.basicConfig(level=logging.INFO)
 
         query = \
             [
+                {
+                    "component": "OE.ObservingEngine",
+                    "monitor": "currentObservingState",
+                    "epsilon": 0,
+                    "type": "magnitude"
+                },
                 {
                     "component": "MACS.AzimuthAxis",
                     "monitor": "position",
@@ -176,12 +223,14 @@ class TestRetrieveMonitor(TestCase):
                     "type": "array"
                 }
 
+
+
             ]
 
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "march_2022_following_error")
 
         data_frame = retrieve.retrieve_summary(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
-                                               datetime.strptime("2022-07-01 19:00:10", "%Y-%m-%d %H:%M:%S"))
+                                               datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"))
 
         print(data_frame)
 
@@ -191,6 +240,12 @@ class TestRetrieveMonitor(TestCase):
 
         query = \
             [
+                {
+                    "component": "OE.ObservingEngine",
+                    "monitor": "currentObservingState",
+                    "epsilon": 0,
+                    "type": "magnitude"
+                },
                 {
                     "component": "MACS.AzimuthAxis",
                     "monitor": "position",

@@ -12,7 +12,7 @@ def _remove_similar_consecutive_values(data_frame, monitor_name, epsilon):
         for idx, row in data_frame.iterrows():
             if idx == 0:
                 continue
-            if ((pivot - row[1:]) ** 2).sum() ** 0.5 < epsilon:
+            if ((pivot - row[1:]) ** 2).sum() ** 0.5 <= epsilon:
                 to_remove.append(idx)
             else:
                 pivot = row
