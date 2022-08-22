@@ -178,19 +178,20 @@ class RetrieveMonitor(object):
 
         return data_frame
 
-    def sanity_check(self, a_query):
+    def sanity_query_check(self, a_query):
 
         if not isinstance(a_query, (list, tuple)):
-            raise "Not a list"
+            raise "A query must be a list of monitors."
         else:
             for e in a_query:
-                if not "component" in e: raise "Key component not in dict"
-                if not "monitor" in e: raise "Key monitor not in dict"
-                if not "epsilon" in e: raise "Key epsilon not in dict"
-                if not "type" in e: raise "Key type not in dict"
+                if not "component" in e: raise "Component not specified."
+                if not "monitor" in e: raise "Monitor not specified."
+                if not "epsilon" in e: raise "Epsilon not specified."
+                if not "type" in e: raise "Type not specified."
 
                 if not type(e['epsilon']) == float: raise "Epsilon should be float"
-                if not e['type'] in ["monitor", "array", "enum"]: raise "Type Not valid"
+                if not e['type'] in ["monitor", "array", "enum"]:
+                    raise "Not valid value for type should be: monitor, array or enum"
 
                 try:
                     config = self.request.get_monitor_configuration(q_component=e['component'].replace('.', '/'),
@@ -199,10 +200,8 @@ class RetrieveMonitor(object):
 
                     if e['type'] in "array" and config["dimension_x"] == 1 and config["dimension_y"] == 1:
                         raise "Monitor dimension incorrect"
-
-                    print(config)
                 except:
-                    raise "Monitor does not exist"
+                    raise "Monitor does not exist in database."
 
     #todo Check if monitor if active. This can be problematic if monitor was active at some point but not now.
     #todo Inject the ID in the a_query. This mean later on it is not neccesary to ask for this value.

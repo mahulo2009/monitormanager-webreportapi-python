@@ -255,7 +255,7 @@ class TestRetrieveMonitor(TestCase):
             ]
 
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "march_2022_following_error")
-        data_frame = retrieve.sanity_check(query)
+        retrieve.sanity_query_check(query)
 
-        print(data_frame)
+
 
