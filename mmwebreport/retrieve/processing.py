@@ -21,33 +21,6 @@ def _remove_similar_consecutive_values(data_frame, monitor_name, epsilon):
 
     return data_frame
 
-#def _remove_similar_consecutive_values(data_frame, monitor_name, epsilon):
-    """
-    Give a data frame it removes the values consecutive that are similar.
-
-    :param data_frame: a data frame with value to be filtered
-    :param monitor_name: a monitor to be filtered in the data frame
-    :param epsilon: the epsilon to check if two values are similar
-
-    :return: a data frame where similar values, base on epsilon, were removed.
-    """
-    # if data_frame.size > 0:
-    #     to_remove = []
-    #
-    #     pivot = data_frame[monitor_name][0]
-    #     for idx, row in data_frame.iterrows():
-    #         if idx == 0:
-    #             continue
-    #         if abs(pivot - row[monitor_name]) < epsilon:
-    #             to_remove.append(idx)
-    #         else:
-    #             pivot = row[monitor_name]
-    #
-    #     data_frame.drop(to_remove, axis=0, inplace=True)
-    #
-    # return data_frame
-
-
 def _convert(data_frame):
     data_frame['TimeStampLong'] = pd.to_datetime(data_frame['TimeStampLong'], unit='us')
 

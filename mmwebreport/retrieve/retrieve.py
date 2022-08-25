@@ -18,11 +18,13 @@ class RetrieveMonitor(object):
     todo
     """
 
-    def __init__(self, host, port, q_query, q_name):
+    def __init__(self, host, port, q_query, q_name, q_clean_cache=False, q_fillfw=False):
         self.request = Report(host, port)
         self._query = q_query
         self._query_name = q_name
         self._path = os.path.expanduser("~") + "/.cache/webreport/monitormanager"
+        self._clean_cache = q_clean_cache
+        self._fillfw = q_fillfw
 
     def retrieve_raw(self, date_ini, date_end, q_entry):
         """
@@ -53,12 +55,13 @@ class RetrieveMonitor(object):
             logging.info("Retrieve monitor path %s ", os.path.dirname(path))
             if not exists(os.path.dirname(path)):
                 os.makedirs(os.path.dirname(path))
-            if exists(os.path.dirname(path) + "/query" + str(page) + ".json") and \
+            if not self._clean_cache and exists(os.path.dirname(path) + "/query" + str(page) + ".json") and \
                     cache.compare_raw_query(cache.build_query(date_ini, date_end, self._query_name, [q_entry], page),
                                             cache.read_query(os.path.dirname(path), page)):
-                logging.info("Retrieve monitor from cache %s ", path)
+                logging.info("Retrieve raw monitor from cache %s ", path)
                 data_frame = pd.read_csv(path, compression='infer')
             else:
+                logging.info("Retrieve monitor from API call")
                 data_frame = pd.read_csv(io.StringIO(c.run().to_csv()), sep=",")
                 data_frame.to_csv(path, index=False, compression='infer')
                 cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", [q_entry], page)
@@ -67,7 +70,7 @@ class RetrieveMonitor(object):
 
         return data_frame
 
-    def retrieve_filtered(self, date_ini, date_end, q_entry):
+    def retrieve_filtered(self, time_interval_ini, time_interval_end, date_ini, date_end, q_entry):
         """
         Given the time interval and a query entry create a data frame with the result, filtered by similar values. The
         request result is cached in disk.
@@ -94,18 +97,22 @@ class RetrieveMonitor(object):
         if not exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
 
-        if exists(os.path.dirname(path) + "/query.json") and \
+        if not self._clean_cache and exists(os.path.dirname(path) + "/query.json") and \
                 cache.compare_filtered_query(cache.build_query(date_ini, date_end, self._query_name, [q_entry]),
                                              cache.read_query(os.path.dirname(path))):
             logging.info("Retrieve monitor from cache %s ", path)
             data_frame = pd.read_csv(path, compression='infer')
         else:
             logging.info("Retrieve monitor from API call")
-            data_frame = self.retrieve_raw(date_ini, date_end, q_entry)
+            data_frame = self.retrieve_raw(time_interval_ini, time_interval_end, q_entry)
+            data_frame = _convert(data_frame)
+            data_frame = _filter(data_frame, date_ini, date_end)
+            data_frame.reset_index(drop=True, inplace=True)
+
             if q_entry["type"] == "monitor" or q_entry["type"] == "array":
                 data_frame = _remove_similar_consecutive_values(data_frame,
-                                                            q_entry['component'] + "." + q_entry['monitor'],
-                                                            q_entry["epsilon"])
+                                                                q_entry['component'] + "." + q_entry['monitor'],
+                                                                q_entry["epsilon"])
                 data_frame.to_csv(path, index=False, compression='infer')
                 cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", [q_entry])
             else:
@@ -114,36 +121,35 @@ class RetrieveMonitor(object):
 
         return data_frame
 
-    def retrieve_summary_hourly(self, date_ini, date_end):
+    def retrieve_summary_hourly(self, time_interval_ini, time_interval_end, q_date_ini, q_date_end):
         """
         todo
         :return:
         """
         logging.info("Retrieve hourly")
 
-        logging.info("Retrieve hourly from %s to %s", date_ini, date_end)
-        path = cache.make_path_summary_hourly(self._path, date_ini, date_end, self._query_name)
+        logging.info("Retrieve hourly from %s to %s", time_interval_ini, time_interval_end)
+        path = cache.make_path_summary_hourly(self._path, time_interval_ini, time_interval_end, self._query_name)
         logging.info("Retrieve path %s ", os.path.dirname(path))
         if not exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
-        if exists(os.path.dirname(path) + "/query.json") and \
-                cache.compare_summary_query(cache.build_query(date_ini, date_end, self._query_name, self._query),
-                                            cache.read_query(os.path.dirname(path))):
+        if not self._clean_cache and exists(os.path.dirname(path) + "/query.json") and \
+                cache.compare_summary_query(
+                    cache.build_query(time_interval_ini, time_interval_end, self._query_name, self._query),
+                    cache.read_query(os.path.dirname(path))):
             logging.info("Retrieve monitor from cache %s ", path)
             data_frame = pd.read_csv(path, compression='infer')
         else:
             logging.info("Retrieve monitor from api call")
             data_frames_hourly = []
             for idx, monitor in enumerate(self._query):
-                logging.info("Retrieve %s %s %s ", date_ini, date_end, monitor)
-                data_frame = self.retrieve_filtered(date_ini, date_end, monitor)
-                data_frame = _convert(data_frame)
-                data_frame = _filter(data_frame, date_ini, date_end)
+                logging.info("Retrieve %s %s %s ", time_interval_ini, time_interval_end, monitor)
+                data_frame = self.retrieve_filtered(time_interval_ini, time_interval_end, q_date_ini, q_date_end, monitor)
                 data_frames_hourly.append(data_frame)
-            logging.info("Merge hours %s %s ", date_ini, date_end)
+            logging.info("Merge hours %s %s ", q_date_ini, q_date_end)
             data_frame = _merge_data_frames(data_frames_hourly)
             data_frame.to_csv(path, index=False, compression='infer')
-            cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", self._query)
+            cache.store_query(os.path.dirname(path), q_date_end, q_date_end, "study_0", self._query)
         return data_frame
 
     def retrieve_summary(self, date_ini, date_end):
@@ -154,7 +160,7 @@ class RetrieveMonitor(object):
 
         if not exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
-        if exists(os.path.dirname(path) + "/query.json") and \
+        if not self._clean_cache and exists(os.path.dirname(path) + "/query.json") and \
                 cache.compare_summary_query(cache.build_query(date_ini, date_end,
                                                               self._query_name, self._query),
                                             cache.read_query(os.path.dirname(path))):
@@ -169,12 +175,16 @@ class RetrieveMonitor(object):
             for time_interval in time_intervals:
                 logging.info("Retrieve hourly from %s to %s", time_interval[0], time_interval[1])
 
-                data_frame = self.retrieve_summary_hourly(time_interval[0], time_interval[1])
+                data_frame = self.retrieve_summary_hourly(time_interval[0], time_interval[1], date_ini, date_end)
                 data_frames_monitors.append(data_frame)
 
             data_frame = _merge_data_frames(data_frames_monitors)
             data_frame.to_csv(path, index=False, compression='infer')
             cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", self._query)
+
+        if self._fillfw:
+            data_frame.fillna(method='ffill', inplace=True)
+            data_frame.dropna(inplace=True)
 
         return data_frame
 
@@ -203,14 +213,15 @@ class RetrieveMonitor(object):
                 except:
                     raise "Monitor does not exist in database."
 
-    #todo Check if monitor if active. This can be problematic if monitor was active at some point but not now.
-    #todo Inject the ID in the a_query. This mean later on it is not neccesary to ask for this value.
-    #todo Inject the unit in case the user does not defined ¿for doing this i will add support for units in query?.
-    #todo Inject epsilon in case the user does not defined, what happen if epsilon not in database, shall allow to not filter at all.
-    #todo ¿include subsampling option, check in this case if subsampling query make sanse with sample of monitor?
-    #todo ¿include range control for the values optinally? in this case populate ddbb correctly
-    #todo do chache of summary by day and store informatio to know if necessary to reproduce.
-    #todo Include a summary of the process of download.
-    #todo include a progress bar
-    #todo wildcard, all the active monitor for a device..
-    #todo reemplazar los NaN por valores iguales, antes y despues....
+    # todo Check if monitor if active. This can be problematic if monitor was active at some point but not now.
+    # todo Inject the ID in the a_query. This mean later on it is not neccesary to ask for this value.
+    # todo Inject the unit in case the user does not defined ¿for doing this i will add support for units in query?.
+    # todo Inject epsilon in case the user does not defined, what happen if epsilon not in database, shall allow to not filter at all.
+    # todo ¿include subsampling option, check in this case if subsampling query make sanse with sample of monitor?
+    # todo ¿include range control for the values optinally? in this case populate ddbb correctly
+    # todo do chache of summary by day and store informatio to know if necessary to reproduce.
+    # todo Include a summary of the process of download.
+    # todo include a progress bar
+    # todo wildcard, all the active monitor for a device..
+    # todo reemplazar los NaN por valores iguales, antes y despues....
+    # todo provie a date list.

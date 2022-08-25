@@ -45,7 +45,7 @@ class TestRetrieveMonitor(TestCase):
                 "type": "monitor"
             }
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0", q_clean_cache=True)
 
         data_frame = retrieve.retrieve_raw(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
                                            datetime.strptime("2022-07-01 19:00:10", "%Y-%m-%d %H:%M:%S"),
@@ -64,7 +64,7 @@ class TestRetrieveMonitor(TestCase):
                 "type": "array"
             }
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0", q_clean_cache=True)
 
         data_frame = retrieve.retrieve_raw(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
                                                 datetime.strptime("2022-07-01 19:00:10", "%Y-%m-%d %H:%M:%S"),
@@ -82,7 +82,7 @@ class TestRetrieveMonitor(TestCase):
                 "type": "magnitude"
             }
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0", q_clean_cache=True)
 
         data_frame = retrieve.retrieve_raw(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
                                                 datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
@@ -102,10 +102,12 @@ class TestRetrieveMonitor(TestCase):
                 "type": "monitor"
             }
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0", q_clean_cache=True)
 
         data_frame = retrieve.retrieve_filtered(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
-                                                datetime.strptime("2022-07-01 19:00:10", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 19:00:20", "%Y-%m-%d %H:%M:%S"),
                                                 query)
 
         print(data_frame)
@@ -121,9 +123,11 @@ class TestRetrieveMonitor(TestCase):
                 "type": "array"
             }
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0", q_clean_cache=True)
 
         data_frame = retrieve.retrieve_filtered(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
                                                 datetime.strptime("2022-07-01 19:00:10", "%Y-%m-%d %H:%M:%S"),
                                                 query)
 
@@ -141,9 +145,11 @@ class TestRetrieveMonitor(TestCase):
                 "type": "magnitude"
             }
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0")
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "study_0", q_clean_cache=True)
 
         data_frame = retrieve.retrieve_filtered(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
                                                 datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
                                                 query)
 
@@ -227,7 +233,7 @@ class TestRetrieveMonitor(TestCase):
 
             ]
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "march_2022_following_error")
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "march_2022_following_error", q_clean_cache=True)
 
         data_frame = retrieve.retrieve_summary(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
                                                datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"))
@@ -314,3 +320,38 @@ class TestRetrieveMonitor(TestCase):
 
 
 
+
+    def test_retrieve_summary_list(self):
+        logging.basicConfig(level=logging.INFO)
+
+        query = \
+            [
+                {
+                    "component": "MEGARA.MCS.Adam6015",
+                    "monitor": "temperature",
+                    "epsilon": 0,
+                    "type": "array"
+                },
+                {
+                    "component": "ECM.EMCS.IndoorSensors1",
+                    "monitor": "temperature",
+                    "epsilon": 0,
+                    "type": "array"
+                },
+                {
+                    "component": "ECM.EMCS.StructureSensors1",
+                    "monitor": "temperature",
+                    "epsilon": 0,
+                    "type": "array"
+                }
+
+            ]
+
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "megara_temp", q_clean_cache=True, q_fillfw=True)
+
+        data_frame = retrieve.retrieve_summary(datetime.strptime("2022-08-16 04:50:51", "%Y-%m-%d %H:%M:%S"),
+                                               datetime.strptime("2022-08-16 04:50:52", "%Y-%m-%d %H:%M:%S"))
+
+        print(data_frame)
+        #todo me está devolviendo todos los valores, fuera de rango de tiempo, lo cacheado por fechas.
+        #se está liando con otros summary de mismo rango de fechas....
