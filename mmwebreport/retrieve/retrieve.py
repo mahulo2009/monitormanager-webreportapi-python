@@ -46,25 +46,22 @@ class RetrieveMonitor(object):
         """
         cursor = self.request.search(date_ini, date_end, [q_entry])
 
-        monitor_key = q_entry['component'] + "." + q_entry['monitor']
+        monitor_id = q_entry['component'] + "." + q_entry['monitor']
 
         data_frames_page = []
         for page, c in enumerate(cursor):
-            logging.info("Retrieve monitor %s from %s to %s page %s", monitor_key, date_ini, date_end, page)
-            path = cache.make_path_raw(self._path, date_ini, date_end, monitor_key, page)
-            logging.info("Retrieve monitor path %s ", os.path.dirname(path))
-            if not exists(os.path.dirname(path)):
-                os.makedirs(os.path.dirname(path))
-            if not self._clean_cache and exists(os.path.dirname(path) + "/query" + str(page) + ".json") and \
-                    cache.compare_raw_query(cache.build_query(date_ini, date_end, self._query_name, [q_entry], page),
-                                            cache.read_query(os.path.dirname(path), page)):
-                logging.info("Retrieve raw monitor from cache %s ", path)
-                data_frame = pd.read_csv(path, compression='infer')
+            logging.info("Retrieve monitor %s from %s to %s page %s", monitor_id, date_ini, date_end, page)
+            if not self._clean_cache and cache.is_data_frame_raw_cached(self._path,
+                                                                        date_ini, date_end,
+                                                                        monitor_id, self._query_name, [q_entry],
+                                                                        page):
+                logging.info("Retrieve raw monitor from cache")
+                data_frame = cache.data_frame_raw_from_cache(self._path, date_ini, date_end, monitor_id, page)
             else:
                 logging.info("Retrieve monitor from API call")
                 data_frame = pd.read_csv(io.StringIO(c.run().to_csv()), sep=",")
-                data_frame.to_csv(path, index=False, compression='infer')
-                cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", [q_entry], page)
+                cache.data_frame_raw_to_cache(data_frame, self._path,
+                                              date_ini, date_end, monitor_id, self._query_name, [q_entry], page)
             data_frames_page.append(data_frame)
         data_frame = pd.concat(data_frames_page, ignore_index=True, sort=False)
 
@@ -87,38 +84,28 @@ class RetrieveMonitor(object):
 
         :return: a data frame for this request, filtering the similar values base on epsilon monitor param.
         """
-        monitor_key = q_entry['component'] + "." + q_entry['monitor']
+        monitor_id = q_entry['component'] + "." + q_entry['monitor']
 
         logging.info("Retrieve monitor %s from %s to %s ",
-                     monitor_key, date_ini, date_end)
+                     monitor_id, date_ini, date_end)
 
-        path = cache.make_path_filtered(self._path, date_ini, date_end, monitor_key)
-        logging.info("Retrieve monitor path %s ", os.path.dirname(path))
-        if not exists(os.path.dirname(path)):
-            os.makedirs(os.path.dirname(path))
-
-        if not self._clean_cache and exists(os.path.dirname(path) + "/query.json") and \
-                cache.compare_filtered_query(cache.build_query(date_ini, date_end, self._query_name, [q_entry]),
-                                             cache.read_query(os.path.dirname(path))):
-            logging.info("Retrieve monitor from cache %s ", path)
-            data_frame = pd.read_csv(path, compression='infer')
+        if not self._clean_cache and cache.is_data_frame_filtered_cached(self._path,
+                                                                         date_ini, date_end,
+                                                                         monitor_id, self._query_name, [q_entry]):
+            logging.info("Retrieve raw monitor from cache")
+            data_frame = cache.data_frame_filtered_from_cache(self._path, date_ini, date_end, monitor_id)
         else:
             logging.info("Retrieve monitor from API call")
             data_frame = self.retrieve_raw(time_interval_ini, time_interval_end, q_entry)
             data_frame = _convert(data_frame)
             data_frame = _filter(data_frame, date_ini, date_end)
             data_frame.reset_index(drop=True, inplace=True)
-
             if q_entry["type"] == "monitor" or q_entry["type"] == "array":
                 data_frame = _remove_similar_consecutive_values(data_frame,
                                                                 q_entry['component'] + "." + q_entry['monitor'],
                                                                 q_entry["epsilon"])
-                data_frame.to_csv(path, index=False, compression='infer')
-                cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", [q_entry])
-            else:
-                data_frame.to_csv(path, index=False, compression='infer')
-                cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", [q_entry])
-
+            cache.data_frame_filtered_to_cache(data_frame, self._path,
+                                               date_ini, date_end, monitor_id, self._query_name, [q_entry])
         return data_frame
 
     def retrieve_summary_hourly(self, time_interval_ini, time_interval_end, q_date_ini, q_date_end):
@@ -126,62 +113,61 @@ class RetrieveMonitor(object):
         todo
         :return:
         """
-        logging.info("Retrieve hourly")
-
         logging.info("Retrieve hourly from %s to %s", time_interval_ini, time_interval_end)
-        path = cache.make_path_summary_hourly(self._path, time_interval_ini, time_interval_end, self._query_name)
-        logging.info("Retrieve path %s ", os.path.dirname(path))
-        if not exists(os.path.dirname(path)):
-            os.makedirs(os.path.dirname(path))
-        if not self._clean_cache and exists(os.path.dirname(path) + "/query.json") and \
-                cache.compare_summary_query(
-                    cache.build_query(time_interval_ini, time_interval_end, self._query_name, self._query),
-                    cache.read_query(os.path.dirname(path))):
-            logging.info("Retrieve monitor from cache %s ", path)
-            data_frame = pd.read_csv(path, compression='infer')
+
+        if not self._clean_cache and cache.is_data_frame_summary_hourly_cached(self._path,
+                                                                               time_interval_ini, time_interval_end,
+                                                                               self._query_name, self._query):
+            logging.info("Retrieve summary hourly from cache")
+            data_frame = cache.data_frame_summary_hourly_from_cache(self._path,
+                                                                    time_interval_ini,
+                                                                    time_interval_end,
+                                                                    self._query_name)
         else:
-            logging.info("Retrieve monitor from api call")
+            logging.info("Retrieve summary hourly from API call")
+
             data_frames_hourly = []
             for idx, monitor in enumerate(self._query):
                 logging.info("Retrieve %s %s %s ", time_interval_ini, time_interval_end, monitor)
-                data_frame = self.retrieve_filtered(time_interval_ini, time_interval_end, q_date_ini, q_date_end, monitor)
+                data_frame = self.retrieve_filtered(time_interval_ini, time_interval_end, q_date_ini, q_date_end,
+                                                    monitor)
                 data_frames_hourly.append(data_frame)
             logging.info("Merge hours %s %s ", q_date_ini, q_date_end)
+            # todo first time executed the merge return an error review this
             data_frame = _merge_data_frames(data_frames_hourly)
-            data_frame.to_csv(path, index=False, compression='infer')
-            cache.store_query(os.path.dirname(path), q_date_end, q_date_end, "study_0", self._query)
+            cache.data_frame_summary_hourly_to_cache(data_frame, self._path,
+                                                     time_interval_ini, time_interval_end, self._query_name,
+                                                     self._query)
         return data_frame
 
     def retrieve_summary(self, date_ini, date_end):
-        logging.info("Retrieve summary")
+        """
+        :param date_ini:
+        :param date_end:
+        :return:
+        """
 
-        path = cache.make_path_summary_query(self._path, date_ini, date_end, self._query_name)
-        logging.info("Retrieve path %s ", os.path.dirname(path))
+        logging.info("Retrieve Summary from %s to %s", date_ini, date_end)
 
-        if not exists(os.path.dirname(path)):
-            os.makedirs(os.path.dirname(path))
-        if not self._clean_cache and exists(os.path.dirname(path) + "/query.json") and \
-                cache.compare_summary_query(cache.build_query(date_ini, date_end,
-                                                              self._query_name, self._query),
-                                            cache.read_query(os.path.dirname(path))):
-            logging.info("Retrieve monitor from cache %s ", path)
-
-            data_frame = pd.read_csv(path, compression='infer')
+        if not self._clean_cache and cache.is_data_frame_summary_cached(self._path,
+                                                                        date_ini, date_end,
+                                                                        self._query_name, self._query):
+            logging.info("Retrieve summary hourly from cache")
+            data_frame = cache.data_frame_summary_from_cache(self._path, date_ini, date_end, self._query_name)
         else:
-            logging.info("Retrieve monitor from API call")
+            logging.info("Retrieve summary hourly from API call")
 
             data_frames_monitors = []
             time_intervals = _make_time_intervals(date_ini, date_end)
             for time_interval in time_intervals:
                 logging.info("Retrieve hourly from %s to %s", time_interval[0], time_interval[1])
-
                 data_frame = self.retrieve_summary_hourly(time_interval[0], time_interval[1], date_ini, date_end)
                 data_frames_monitors.append(data_frame)
-
             data_frame = _merge_data_frames(data_frames_monitors)
-            data_frame.to_csv(path, index=False, compression='infer')
-            cache.store_query(os.path.dirname(path), date_ini, date_end, "study_0", self._query)
 
+            cache.data_frame_summary_to_cache(data_frame, self._path,
+                                              date_ini, date_end,
+                                              self._query_name, self._query)
         if self._fillfw:
             data_frame.fillna(method='ffill', inplace=True)
             data_frame.dropna(inplace=True)
