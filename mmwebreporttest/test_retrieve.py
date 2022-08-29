@@ -264,6 +264,12 @@ class TestRetrieveMonitor(TestCase):
                     "monitor": "slowGuideErrorB",
                     "epsilon": 4.8e-07,
                     "type": "monitor"
+                },
+                {
+                    "component": "M1CS.Stabilisation",
+                    "monitor": "positionerPosition",
+                    "epsilon": 1500.0,
+                    "type": "array"
                 }
 
             ]

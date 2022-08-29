@@ -40,7 +40,11 @@ class Cache(object):
 
         equal = equal and (query_1["date_ini"] == query_2["date_ini"])
         equal = equal and (query_1["date_end"] == query_2["date_end"])
-        if len(query_1["query"]) > 0:
+
+        if len(query_1["query"]) != len(query_2["query"]):
+            return False
+
+        for index in range(0, len(query_1["query"])):
             equal = equal and (query_1["query"][index]["component"] == query_2["query"][index]["component"])
             equal = equal and (query_1["query"][index]["monitor"] == query_2["query"][index]["monitor"])
             equal = equal and (query_1["query"][index]["type"] == query_2["query"][index]["type"])
@@ -80,6 +84,8 @@ class Cache(object):
 
         query_build = self._build_query(page)
         query_disk = self.read_query(0, page)
+
+
 
         return self.compare_query(query_build, query_disk)
 
