@@ -44,24 +44,19 @@ class RetrieveMonitor(object):
 
         :return: a data frame for this request, filtering the similar values base on epsilon monitor param.
         """
-        cursor = self.request.search(date_ini, date_end, [q_entry])
-
-        monitor_id = q_entry['component'] + "." + q_entry['monitor']
+        a_cache = cache.CacheRaw(self._path, date_ini, date_end, self._query_name, [q_entry])
 
         data_frames_page = []
+        cursor = self.request.search(date_ini, date_end, [q_entry])
         for page, c in enumerate(cursor):
-            logging.info("Retrieve monitor %s from %s to %s page %s", monitor_id, date_ini, date_end, page)
-            if not self._clean_cache and cache.is_data_frame_raw_cached(self._path,
-                                                                        date_ini, date_end,
-                                                                        monitor_id, self._query_name, [q_entry],
-                                                                        page):
+            logging.info("Retrieve monitor from %s to %s page %s", date_ini, date_end, page)
+            if not self._clean_cache and a_cache.is_data_frame_cached(page):
                 logging.info("Retrieve raw monitor from cache")
-                data_frame = cache.data_frame_raw_from_cache(self._path, date_ini, date_end, monitor_id, page)
+                data_frame = a_cache.data_frame_from_cache(page)
             else:
                 logging.info("Retrieve monitor from API call")
                 data_frame = pd.read_csv(io.StringIO(c.run().to_csv()), sep=",")
-                cache.data_frame_raw_to_cache(data_frame, self._path,
-                                              date_ini, date_end, monitor_id, self._query_name, [q_entry], page)
+                a_cache.data_frame_to_cache(data_frame, page)
             data_frames_page.append(data_frame)
         data_frame = pd.concat(data_frames_page, ignore_index=True, sort=False)
 
@@ -84,16 +79,13 @@ class RetrieveMonitor(object):
 
         :return: a data frame for this request, filtering the similar values base on epsilon monitor param.
         """
-        monitor_id = q_entry['component'] + "." + q_entry['monitor']
+        logging.info("Retrieve monitor from %s to %s ", date_ini, date_end)
 
-        logging.info("Retrieve monitor %s from %s to %s ",
-                     monitor_id, date_ini, date_end)
+        a_cache = cache.CacheFiltered(self._path, date_ini, date_end, self._query_name, [q_entry])
 
-        if not self._clean_cache and cache.is_data_frame_filtered_cached(self._path,
-                                                                         date_ini, date_end,
-                                                                         monitor_id, self._query_name, [q_entry]):
+        if not self._clean_cache and a_cache.is_data_frame_cached():
             logging.info("Retrieve raw monitor from cache")
-            data_frame = cache.data_frame_filtered_from_cache(self._path, date_ini, date_end, monitor_id)
+            data_frame = a_cache.data_frame_from_cache()
         else:
             logging.info("Retrieve monitor from API call")
             data_frame = self.retrieve_raw(time_interval_ini, time_interval_end, q_entry)
@@ -104,8 +96,8 @@ class RetrieveMonitor(object):
                 data_frame = _remove_similar_consecutive_values(data_frame,
                                                                 q_entry['component'] + "." + q_entry['monitor'],
                                                                 q_entry["epsilon"])
-            cache.data_frame_filtered_to_cache(data_frame, self._path,
-                                               date_ini, date_end, monitor_id, self._query_name, [q_entry])
+            a_cache.data_frame_to_cache(data_frame)
+
         return data_frame
 
     def retrieve_summary_hourly(self, time_interval_ini, time_interval_end, q_date_ini, q_date_end):
@@ -115,14 +107,14 @@ class RetrieveMonitor(object):
         """
         logging.info("Retrieve hourly from %s to %s", time_interval_ini, time_interval_end)
 
-        if not self._clean_cache and cache.is_data_frame_summary_hourly_cached(self._path,
-                                                                               time_interval_ini, time_interval_end,
-                                                                               self._query_name, self._query):
+        a_cache = cache.CacheSummaryHourly(self._path,
+                                           time_interval_ini, time_interval_end,
+                                           self._query_name, self._query)
+
+        if not self._clean_cache and a_cache.is_data_frame_cached():
             logging.info("Retrieve summary hourly from cache")
-            data_frame = cache.data_frame_summary_hourly_from_cache(self._path,
-                                                                    time_interval_ini,
-                                                                    time_interval_end,
-                                                                    self._query_name)
+
+            data_frame = a_cache.data_frame_from_cache()
         else:
             logging.info("Retrieve summary hourly from API call")
 
@@ -135,9 +127,7 @@ class RetrieveMonitor(object):
             logging.info("Merge hours %s %s ", q_date_ini, q_date_end)
             # todo first time executed the merge return an error review this
             data_frame = _merge_data_frames(data_frames_hourly)
-            cache.data_frame_summary_hourly_to_cache(data_frame, self._path,
-                                                     time_interval_ini, time_interval_end, self._query_name,
-                                                     self._query)
+            a_cache.data_frame_to_cache(data_frame)
         return data_frame
 
     def retrieve_summary(self, date_ini, date_end):
@@ -149,11 +139,14 @@ class RetrieveMonitor(object):
 
         logging.info("Retrieve Summary from %s to %s", date_ini, date_end)
 
-        if not self._clean_cache and cache.is_data_frame_summary_cached(self._path,
-                                                                        date_ini, date_end,
-                                                                        self._query_name, self._query):
+        a_cache = cache.CacheSummary(self._path,
+                                     date_ini, date_end,
+                                     self._query_name, self._query)
+
+        if not self._clean_cache and a_cache.is_data_frame_cached():
             logging.info("Retrieve summary hourly from cache")
-            data_frame = cache.data_frame_summary_from_cache(self._path, date_ini, date_end, self._query_name)
+
+            data_frame = a_cache.data_frame_from_cache()
         else:
             logging.info("Retrieve summary hourly from API call")
 
@@ -164,10 +157,8 @@ class RetrieveMonitor(object):
                 data_frame = self.retrieve_summary_hourly(time_interval[0], time_interval[1], date_ini, date_end)
                 data_frames_monitors.append(data_frame)
             data_frame = _merge_data_frames(data_frames_monitors)
+            a_cache.data_frame_to_cache(data_frame)
 
-            cache.data_frame_summary_to_cache(data_frame, self._path,
-                                              date_ini, date_end,
-                                              self._query_name, self._query)
         if self._fillfw:
             data_frame.fillna(method='ffill', inplace=True)
             data_frame.dropna(inplace=True)
