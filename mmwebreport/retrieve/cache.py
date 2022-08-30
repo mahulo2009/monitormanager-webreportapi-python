@@ -109,11 +109,11 @@ class CacheRaw(Cache):
     def make_path(self, page=None, extension=_default_extension):
         path = self._make_path_root() + "/" + str(self._a_id).replace(".", "/") + "/raw"
 
-        file_name_monitor = str(self._a_id) + \
+        file_name_monitor = self._date_ini.strftime("%Y-%m-%d_%H_%M_%S") + \
                             "." + \
-                            self._date_ini.strftime("%Y-%m-%d_%H_%M_%S") + \
+                            self._date_end.strftime("%Y-%m-%d_%H_%M_%S") + \
                             "." + \
-                            self._date_end.strftime("%Y-%m-%d_%H_%M_%S")
+                            str(self._a_id)
         if page is None:
             file_name_monitor = file_name_monitor + "." + self._extension
         else:
@@ -132,11 +132,12 @@ class CacheFiltered(Cache):
     def make_path(self, page=None, extension=_default_extension):
         path = self._make_path_root() + "/" + str(self._a_id).replace(".", "/")
 
-        file_name_monitor = str(self._a_id) + \
+        file_name_monitor = self._date_ini.strftime("%Y-%m-%d_%H_%M_%S") + \
                             "." + \
-                            self._date_ini.strftime("%Y-%m-%d_%H_%M_%S") + \
+                            self._date_end.strftime("%Y-%m-%d_%H_%M_%S") + \
                             "." + \
-                            self._date_end.strftime("%Y-%m-%d_%H_%M_%S")
+                            str(self._a_id)
+
         file_name_monitor = file_name_monitor + "." + extension
 
         return path + "/" + file_name_monitor
@@ -161,7 +162,7 @@ class CacheSummaryHourly(Cache):
                             "." + \
                             self._date_end.strftime("%Y-%m-%d_%H_%M_%S")
 
-        file_name_monitor = self._query_name + "." + "summary" + "." + file_name_monitor + "." + extension
+        file_name_monitor = file_name_monitor + "." + self._query_name + "." + "summary" + "." + extension
 
         return path + "/" + file_name_monitor
 
@@ -184,7 +185,8 @@ class CacheSummary(Cache):
         file_name_monitor = self._date_ini.strftime("%Y-%m-%d_%H_%M_%S") + \
                             "." + \
                             self._date_end.strftime("%Y-%m-%d_%H_%M_%S")
-        file_name_monitor = file_name_monitor + ".summary" + "." + extension
+
+        file_name_monitor = file_name_monitor + "." + self._query_name + "." + "summary" + "." + extension
 
         return path + "/" + file_name_monitor
 
