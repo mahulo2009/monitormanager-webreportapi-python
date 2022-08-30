@@ -1,9 +1,12 @@
 import setuptools
 
 setuptools.setup(
-    name='mmwebreport',
+    name='mmwebreportapi',
+    packages=['mmwebreport','mmwebreport.core','mmwebreport.retrieve'],
     version='0.0.1',
-    author='Manuel Huertas Lopez',
     description='Monitor Manager Web Rerpot API',
-    packages=['mmwebreport','mmwebreport.core','mmwebreport.retrieve']
+    author='Manuel Huertas Lopez',
+    author_email='manuel.huertas.lopez@gmail.com',
+    install_requires=['pandas', 'requests'],
+    download_url="https://github.com/mahulo2009/monitormanager-webreportapi-python/archive/refs/tags/v1.0.0-alpha.tar.gz"
 )
