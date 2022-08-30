@@ -4,6 +4,7 @@ from os.path import exists
 
 import pandas as pd
 
+_default_extension = 'csv.gz'
 
 class Cache(object):
     def __init__(self, root_path, date_ini, date_end, query_name, a_query):
@@ -14,13 +15,14 @@ class Cache(object):
         self._query_name = query_name
         self._a_query = a_query
 
+
     def _make_path_root(self):
         path = self._root_path + "/" + \
                self._date_ini.strftime("%Y-%m-%d") + "/" + self._date_ini.strftime("%H")
         return path
 
     # todo mark as abstract method
-    def make_path(self, page=None, extension='gz'):
+    def make_path(self, page=None, extension=_default_extension):
         pass
 
     def _build_query(self, page=None):
@@ -85,13 +87,11 @@ class Cache(object):
         query_build = self._build_query(page)
         query_disk = self.read_query(0, page)
 
-
-
         return self.compare_query(query_build, query_disk)
 
     def data_frame_from_cache(self, page=''):
         file_name = self.make_path(page)
-        return pd.read_csv(file_name, compression='infer')
+        return pd.read_csv(file_name, compression='infer', parse_dates=[0])
 
     def data_frame_to_cache(self, data_frame, page=''):
         file_name = self.make_path(page)
@@ -106,7 +106,7 @@ class CacheRaw(Cache):
     def __init__(self, root_path, date_ini, date_end, query_name, a_query):
         super().__init__(root_path, date_ini, date_end, query_name, a_query)
 
-    def make_path(self, page=None, extension='gz'):
+    def make_path(self, page=None, extension=_default_extension):
         path = self._make_path_root() + "/" + str(self._a_id).replace(".", "/") + "/raw"
 
         file_name_monitor = str(self._a_id) + \
@@ -129,7 +129,7 @@ class CacheFiltered(Cache):
     def __init__(self, root_path, date_ini, date_end, query_name, a_query):
         super().__init__(root_path, date_ini, date_end, query_name, a_query)
 
-    def make_path(self, page=None, extension='gz'):
+    def make_path(self, page=None, extension=_default_extension):
         path = self._make_path_root() + "/" + str(self._a_id).replace(".", "/")
 
         file_name_monitor = str(self._a_id) + \
@@ -144,7 +144,7 @@ class CacheFiltered(Cache):
     def compare_query(self, query_1, query_2, index=0):
         equal = super().compare_query(query_1, query_2)
 
-        if len(query_1["query"]) > 0:
+        for index in range(0, len(query_1["query"])):
             equal = equal and (query_1["query"][index]["epsilon"] == query_2["query"][index]["epsilon"])
 
         return equal
@@ -154,14 +154,14 @@ class CacheSummaryHourly(Cache):
     def __init__(self, root_path, date_ini, date_end, query_name, a_query):
         super().__init__(root_path, date_ini, date_end, query_name, a_query)
 
-    def make_path(self, page=None, extension='gz'):
+    def make_path(self, page=None, extension='cvs.gz'):
         path = self._make_path_root() + "/summary"
 
         file_name_monitor = self._date_ini.strftime("%Y-%m-%d_%H_%M_%S") + \
                             "." + \
                             self._date_end.strftime("%Y-%m-%d_%H_%M_%S")
 
-        file_name_monitor = self._query_name + "." + "merge" + "." + file_name_monitor + "." + extension
+        file_name_monitor = self._query_name + "." + "summary" + "." + file_name_monitor + "." + extension
 
         return path + "/" + file_name_monitor
 
@@ -178,7 +178,7 @@ class CacheSummary(Cache):
     def __init__(self, root_path, date_ini, date_end, query_name, a_query):
         super().__init__(root_path, date_ini, date_end, query_name, a_query)
 
-    def make_path(self, page=None, extension='gz'):
+    def make_path(self, page=None, extension='cvs.gz'):
         path = self._root_path + "/summary/" + self._query_name
 
         file_name_monitor = self._date_ini.strftime("%Y-%m-%d_%H_%M_%S") + \
