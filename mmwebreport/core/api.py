@@ -20,6 +20,7 @@ class Cursor(object):
     It is important to notice that the iterator does not execute the request, instead an Executor is returned that
     must be explicit invoked to run the query.
     """
+
     def __init__(self, url, pages, initial_page=0):
         """
         Initialize the iterator.
@@ -52,9 +53,8 @@ class Cursor(object):
         if self._current >= self._pages:
             raise StopIteration
 
-        url = self._url + \
-              "&" + _QUERY_PAGE_START_TOKEN + "=" + str(self._current) + \
-              "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
+        url = self._url + "&" + _QUERY_PAGE_START_TOKEN + "=" + str(self._current) + "&" + _QUERY_PAGE_LENGTH_TOKEN \
+                        + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
 
         self._current += 1
 
@@ -71,10 +71,50 @@ class Cursor(object):
 
 class Report(object):
     """
+    Invoke the monitor manager backend Api Rest:
+
+        - Get list of components.
+        - Get detail description for a component.
+        - Get configuration of a monitor.
+        - Return metadata for a query report: number of pages, samples per page...
+        - Return a cursor to iterate over the samples result for a set of monitors inside an interval.
+        - Return a cursor to iterate over the samples result for a named query inside an interval.
+
+        A query is defined using a dictionary object as follow:
+
+            query =
+                [
+                    {
+                        "component": "",
+                        "monitor": "",
+                        "epsilon": ,
+                        "type": ""
+                    }
+                ]
+
+        Where:
+
+            component:  The component name following GCS convention but replacing slash with dot. For example,
+                        MACS.AzimuthAxis.
+
+            monitor:    The monitor name following GCS convention. For example: position.
+
+            epsilon:    If different from 0, a value used to filter consecutive similar samples from a query resutl.
+
+            type:       The typ of monitor. It can be monitor for one-dimensional monitor, array for n-dimensional
+                        monitor and magnitude for monitor of type enumerated.
     """
+
     def __init__(self, host, port):
+        """
+        Initialize the Request
+
+        :param host: hostname for the monitor manager backend service.
+        :param port: port  for the monitor manager backend service.
+        """
         self._host = host
         self._port = port
+        # build base url
         self._base_url = "http://" + self._host + ":" + self._port + "/WebReport/rest"
 
     def get_components(self):
@@ -91,7 +131,7 @@ class Report(object):
 
     def get_component(self, q_component):
         """
-        Given a component, return monitor and magnitudes for this component.
+        Given a component, return monitors and magnitudes for this component.
 
         :param q_component: the component name
 
@@ -165,7 +205,7 @@ class Report(object):
         :param q_data_end: The search request end date and time.
         :param q_component: The search request component.
         :param q_monitor: The search request monitor of the component.
-        :param q_type: The search request type, it can be monitor or mangnitude.
+        :param q_type: The search request type, it can be: monitor, array or magnitude.
 
         :return: the search request metadata in json format. The output format is:
                 {
@@ -173,7 +213,6 @@ class Report(object):
                     'totalPages: ''
                     'totalSamples' : ''
                 }
-
         """
         query = [{"component": q_component, "monitor": q_monitor, "epsilon": 0.5, "type": q_type}]
         return self._search_info(q_data_ini, q_data_end, query)
@@ -210,6 +249,23 @@ class Report(object):
         a_cursor = Cursor(url, search_monitor_description["totalPages"])
 
         return a_cursor
+
+    def single_search(self, q_data_ini, q_data_end, q_component, q_monitor, q_type="monitor"):
+        """
+        Given the temporal parameters of a search request, and the query itself, return a Cursor to iterator over
+        the query result. It is important to notice that the iterator does not execute the request, instead an Executor
+        is returned that must be explicit invoked to run the query.
+
+        :param q_data_ini: The search request initial date and time.
+        :param q_data_end: The search request end date and time.
+        :param q_component: The search request component name.
+        :param q_monitor: The search request monitor name.
+        :param q_type: The search request type, it can be: monitor, array or magnitude.
+
+        :return: a :Cursor to iterate over the result.
+        """
+        query = [{"component": q_component, "monitor": q_monitor, "epsilon": 0.5, "type": q_type}]
+        return self.search(q_data_ini, q_data_end, query)
 
     def search_stored_info(self, q_data_ini, q_data_end, q_query_name):
         """
@@ -248,7 +304,7 @@ class Report(object):
 
         :param q_data_ini: The search request initial date and time.
         :param q_data_end: The search request end date and time.
-        :param q_query_name: The query stored name. This query must exits and it can be created with the Monitor
+        :param q_query_name: The query stored name. This query must exits, and it can be created with the Monitor
         Manager Web Rerpot frontend.
 
         :return: a :Cursor to iterate over the result.
@@ -278,7 +334,6 @@ class Report(object):
         :return: a string with the request related to the temporal part.
 
                 The format is: /01/03/2022@23:50:00.000/02/03/2022@00:00:00.000/0?
-
         """
         search_uri_part = ""
         search_uri_part = search_uri_part + q_date_ini.strftime("/%d/%m/%Y@%H:%M:%S.%f")[:-3]
@@ -295,14 +350,12 @@ class Report(object):
         Build the URL part of a request related to monitor.
 
         :param monitor: The search request monitor name of the component.
-        :param q_type: The search request type, it can be monitor or mangnitude.
+        :param q_type: The search request type, it can be: monitor array , or magnitude.
 
         :return: a string with the request related to the monitor part.
 
             The format is: idmonitor=3625
         """
-        # todo exception if q_type not found
-        query_parsed = ""
         if q_type == "monitor":
             query_parsed = _QUERY_MONITOR_TOKEN + "=" + str(monitor["id"])
         elif q_type == "magnitude":
@@ -331,7 +384,6 @@ class Report(object):
         :return: a string with the request related to a monitor set part.
 
             The format is: idmonitor=3623&idmonitor=3625
-
         """
         query_monitor_uri = ""
 
@@ -341,7 +393,8 @@ class Report(object):
                 query_monitor_uri = query_monitor_uri + self._parse_single_monitor(m, q["type"]) + "&"
             query_monitor_uri = query_monitor_uri[:-1]
         else:
-            m = self.get_monitor_configuration(a_query["component"].replace('.', '/'), a_query["monitor"], a_query["type"])
+            m = self.get_monitor_configuration(a_query["component"].replace('.', '/'), a_query["monitor"],
+                                               a_query["type"])
 
             query_monitor_uri = self._parse_single_monitor(a_query, m["type"])
 
@@ -371,7 +424,6 @@ class Report(object):
                         idmonitor=3625&
                         ...
                         length=30000
-
         """
 
         url = self._base_url + "/search/metadata"
@@ -383,20 +435,3 @@ class Report(object):
         response = executor.run()
 
         return response.to_json()
-
-    def single_search(self, q_data_ini, q_data_end, q_component, q_monitor, q_type="monitor"):
-        """
-        Given the temporal parameters of a search request, and the query itself, return a Cursor to iterator over
-        the query result. It is important to notice that the iterator does not execute the request, instead an Executor
-        is returned that must be explicit invoked to run the query.
-
-        :param q_data_ini: The search request initial date and time.
-        :param q_data_end: The search request end date and time.
-        :param q_component: The search request component name.
-        :param q_monitor: The search request monitor name.
-        :param q_type: The search request type, it can be monitor or mangnitude.
-
-        :return: a :Cursor to iterate over the result.
-        """
-        query = [{"component": q_component, "monitor": q_monitor, "epsilon": 0.5, "type": q_type}]
-        return self.search(q_data_ini, q_data_end, query)
