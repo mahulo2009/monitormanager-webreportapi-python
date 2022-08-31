@@ -27,20 +27,18 @@ class Response(object):
 
         :return:
 
-                Two variable:
+            Two variable:
                 
-            - header: The head of the report response:
+                - header: The head of the report response:
             
-                TimeStamp       TimeStampLong   [Monitor1(Unit)]    [Monitor2(Unit)]    ... [MonitorN(Unit)]
+                    TimeStamp       TimeStampLong   [Monitor1(Unit)]    [Monitor2(Unit)]    ... [MonitorN(Unit)]
                 
-            - body: The body of the report response
+                - body: The body of the report response
             
-                <date1>         <number>       <number>             <number>            ... <number>
-                ...
-                <date(n)>       <number>       <number>             <number>            ... <number>
-                
+                    <date1>         <number>       <number>             <number>            ... <number>
+                    ...
+                    <date(n)>       <number>       <number>             <number>            ... <number>
         """
-
         text = text.split('\n')
 
         text_header = ','.join(text[3].replace("/", ".").split(",")[1:])
