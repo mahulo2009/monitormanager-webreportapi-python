@@ -1,0 +1,19 @@
+Check if monitor if active. This can be problematic if monitor was active at some point but not now.
+Inject the ID in the a_query. This mean later on it is not neccesary to ask for this value.
+Inject the unit in case the user does not defined ¿for doing this i will add support for units in query?.
+Inject epsilon in case the user does not defined, what happen if epsilon not in database, shall allow to not filter at all.
+¿include subsampling option, check in this case if subsampling query make sanse with sample of monitor?
+¿include range control for the values optinally? in this case populate ddbb correctly
+do chache of summary by day and store informatio to know if necessary to reproduce.
+Include a summary of the process of download.
+include a progress bar
+wildcard, all the active monitor for a device..
+reemplazar los NaN por valores iguales, antes y despues....
+provie a date list.
+make documentation
+gestionar empty dataframes.
+hacer sanity check para time interval.
+Incluir variacion en time intervals.
+Incluir parametro de tamaño de chunk, o no utilizarlo en abosoluto.
+
+    

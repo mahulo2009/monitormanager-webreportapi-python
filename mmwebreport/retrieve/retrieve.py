@@ -1,8 +1,6 @@
 import os
 import io
 
-from os.path import exists
-
 import pandas as pd
 import logging
 
@@ -28,13 +26,12 @@ class RetrieveMonitor(object):
 
     def retrieve_raw(self, date_ini, date_end, q_entry):
         """
-        Given the time interval and a query entry create a data frame with the result. The request result
-        is cached in disk.
+        Given a date interval and a query entry, it creates a data frame with the result. The request result
+        is cached on disk.
 
-        :param q_entry: todo
         :param date_ini: The search request initial date and time.
         :param date_end: The search request end date and time.
-        :param monitor: The search request query entry.
+        :param q_entry: The search request query entry. For example:
             {
                 "component": "MACS.AzimuthAxis",
                 "monitor": "position",
@@ -42,11 +39,12 @@ class RetrieveMonitor(object):
                 "type": "monitor"
             }
 
-        :return: a data frame for this request, filtering the similar values base on epsilon monitor param.
+        :return: a data frame for this request.
         """
+        # Create a cache object
         a_cache = cache.CacheRaw(self._path, date_ini, date_end, self._query_name, [q_entry])
-
         data_frames_page = []
+        # Iterate over the result pages.
         cursor = self.request.search(date_ini, date_end, [q_entry])
         for page, c in enumerate(cursor):
             logging.info("Retrieve monitor from %s to %s page %s", date_ini, date_end, page)
@@ -64,11 +62,17 @@ class RetrieveMonitor(object):
 
     def retrieve_filtered(self, time_interval_ini, time_interval_end, date_ini, date_end, q_entry):
         """
-        Given the time interval and a query entry create a data frame with the result, filtered by similar values. The
-        request result is cached in disk.
+        Given a time interval, date interval and a query entry, it creates a data frame with the result, filtered by
+        similar values.
 
-        :param date_ini: The search request initial date and time.
-        :param date_end: The search request end date and time.
+        The request to the Monitor Manager Web report is done using the time interval and cached on disk as raw data.
+        The data frame returned will be inside the date range and also cached. Normally, the time interval will have
+        a fixed size, making easier to reuse the data raw cached between different queries.
+
+        :param time_interval_end: The search request initial date and time.
+        :param time_interval_ini: The search request end date and time.
+        :param date_ini: The search filtered request initial date and time.
+        :param date_end: The search filtered  request end date and time.
         :param q_entry: The search request query entry.
             {
                 "component": "MACS.AzimuthAxis",
@@ -80,18 +84,20 @@ class RetrieveMonitor(object):
         :return: a data frame for this request, filtering the similar values base on epsilon monitor param.
         """
         logging.info("Retrieve monitor from %s to %s ", date_ini, date_end)
-
+        # Create a cache object
         a_cache = cache.CacheFiltered(self._path, date_ini, date_end, self._query_name, [q_entry])
-
         if not self._clean_cache and a_cache.is_data_frame_cached():
             logging.info("Retrieve raw monitor from cache")
             data_frame = a_cache.data_frame_from_cache()
         else:
             logging.info("Retrieve monitor from API call")
             data_frame = self.retrieve_raw(time_interval_ini, time_interval_end, q_entry)
+            # Convert time stamp to date
             data_frame = _convert(data_frame)
+            # Filter data inside time interval
             data_frame = _filter(data_frame, date_ini, date_end)
             data_frame.reset_index(drop=True, inplace=True)
+            # Remove similar values using the epsilon to compare if abs(a-b) < epsilon them a == b
             if q_entry["type"] == "monitor" or q_entry["type"] == "array":
                 data_frame = _remove_similar_consecutive_values(data_frame,
                                                                 q_entry['component'] + "." + q_entry['monitor'],
@@ -100,24 +106,37 @@ class RetrieveMonitor(object):
 
         return data_frame
 
-    def retrieve_summary_hourly(self, time_interval_ini, time_interval_end, q_date_ini, q_date_end):
+    def retrieve_summary_chunk(self, time_interval_ini, time_interval_end, q_date_ini, q_date_end):
         """
-        todo
-        :return:
+        Given a time interval, date interval and a query, it creates a data frame with the result, containing
+        several monitors, each one filtered by similar values.
+
+        The request to the Monitor Manager Web report is done using the time interval and cached on disk as raw data
+        for each monitor. Then, the filtered samples for each monitor in the date interval is obtained from raw data,
+        and also cached. Finally, a data frame will be returned with samples for each monitor, inside the data range.
+        This summary will be also cached.
+
+        :param time_interval_ini: The search request initial date and time.
+        :param time_interval_end: The search request end date and time.
+        :param q_date_ini: The search filtered request initial date and time.
+        :param q_date_end: The search filtered  request end date and time.
+
+        :return: a data frame for this request, filtering the similar values base on epsilon monitor param and grouping
+        several monitor.
         """
         logging.info("Retrieve hourly from %s to %s", time_interval_ini, time_interval_end)
 
+        # Create a cache object
         a_cache = cache.CacheSummaryHourly(self._path,
                                            time_interval_ini, time_interval_end,
                                            self._query_name, self._query)
 
         if not self._clean_cache and a_cache.is_data_frame_cached():
             logging.info("Retrieve summary hourly from cache")
-
             data_frame = a_cache.data_frame_from_cache()
         else:
             logging.info("Retrieve summary hourly from API call")
-
+            # Iterate over the query entries in the query
             data_frames_hourly = []
             for idx, monitor in enumerate(self._query):
                 logging.info("Retrieve %s %s %s ", time_interval_ini, time_interval_end, monitor)
@@ -125,40 +144,154 @@ class RetrieveMonitor(object):
                                                     monitor)
                 data_frames_hourly.append(data_frame)
             logging.info("Merge hours %s %s ", q_date_ini, q_date_end)
-            # todo first time executed the merge return an error review this
+            # Merge all the results
             data_frame = _merge_data_frames(data_frames_hourly)
             a_cache.data_frame_to_cache(data_frame)
+
         return data_frame
 
     def retrieve_summary(self, date_ini, date_end):
         """
-        :param date_ini:
-        :param date_end:
-        :return:
-        """
+        Given date interval it creates a data frame with the result, containing several monitors, each one filtered by
+        similar values.
 
+        It is important to notice than both date and time are interpreted as intervals and not as initial and end
+        datetime.
+
+        For example, if the input is:
+
+            date_ini: 2022-07-01 19:00:00
+            date_end: 2022-07-31 06:30:00
+
+        The result will include all the sample between 2022 07 01 and 2022 07 31, where the time is between 19:00 and
+        06:00:00 and not samples from 2022-07-01 19:00:00 to 2022-07-31 06:00:00.
+
+        In addition, in order to optimize the time necessary to obtain the data, a different cache levels are used: raw
+        data from monitor manager web report (this raw data is fixed by individual monitor and with a chunk size of
+        one hour), filtered data between the date range where similar values are excluded, summary data collapsing all
+        the monitors filtered in the previous step , and the final data for the date whole range.
+
+        The query is defined using a dictionary object as follow:
+
+            query =
+                [
+                    {
+                        "component": "",
+                        "monitor": "",
+                        "epsilon": ,
+                        "type": ""
+                    }
+                ]
+
+        Where:
+
+            component:  The component name following GCS convention but replacing slash with dot. For example,
+                        MACS.AzimuthAxis.
+
+            monitor:    The monitor name following GCS convention. For example: position.
+
+            epsilon:    If different from 0, a value used to filter consecutive similar samples from a query resutl.
+
+            type:       The typ of monitor. It can be monitor for one-dimensional monitor, array for n-dimensional
+                        monitor and magnitude for monitor of type enumerated.
+
+
+        In order to clarify how this works let see and example:
+
+        Given:
+
+            date_ini: 2022-07-01 19:00:00
+            date_end: 2022-07-01 19:00:10
+            query_name: following_error_study
+            query = \
+                [
+                    {
+                        "component": "OE.ObservingEngine",
+                        "monitor": "currentObservingState",
+                        "epsilon": 0,
+                        "type": "magnitude"
+                    },
+                    {
+                        "component": "MACS.AzimuthAxis",
+                        "monitor": "position",
+                        "epsilon": 0.5,
+                        "type": "monitor"
+                    }
+                ]
+
+        The following structure will be created on disk:
+
+        .
+        ├── 2022-07-01
+        │ └── 19
+        │     ├── MACS
+        │     │ └── AzimuthAxis
+        │     │     └── position
+        │     │         ├── 2022-07-01_19_00_00.2022-07-01_19_00_10.MACS.AzimuthAxis.position.csv.gz
+        │     │         ├── 2022-07-01_19_00_00.2022-07-01_19_00_10.MACS.AzimuthAxis.position.json
+        │     │         └── raw
+        │     │             ├── 2022-07-01_19_00_00.2022-07-01_20_00_00.MACS.AzimuthAxis.position.raw.0000.csv.gz
+        │     │             └── 2022-07-01_19_00_00.2022-07-01_20_00_00.MACS.AzimuthAxis.position.raw.0000.json
+        │     ├── OE
+        │     │ └── ObservingEngine
+        │     │     └── currentObservingState
+        │     │         ├── 2022-07-01_19_00_00.2022-07-01_19_00_10.OE.ObservingEngine.currentObservingState.csv.gz
+        │     │         ├── 2022-07-01_19_00_00.2022-07-01_19_00_10.OE.ObservingEngine.currentObservingState.json
+        │     │         └── raw
+        │     │             ├── 2022-07-01_19_00_00.2022-07-01_20_00_00.OE.ObservingEngine.currentObservingState.raw.0000.csv.gz
+        │     │             └── 2022-07-01_19_00_00.2022-07-01_20_00_00.OE.ObservingEngine.currentObservingState.raw.0000.json
+        │     └── summary
+        │         ├── 2022-07-01_19_00_00.2022-07-01_20_00_00.following_error_study.summary.cvs.gz
+        │         └── 2022-07-01_19_00_00.2022-07-01_20_00_00.following_error_study.summary.json
+        └── summary
+            └── following_error_study
+                ├── 2022-07-01_19_00_00.2022-07-01_19_00_10.following_error_study.summary.cvs.gz
+                └── 2022-07-01_19_00_00.2022-07-01_19_00_10.following_error_study.summary.json
+
+        In the 2022-07-01/19/MACS/AzimuthAxis/position/raw/
+            2022-07-01_19_00_00.2022-07-01_20_00_00.MACS.AzimuthAxis.position.raw.0000.csv.gz file are the
+        samples for one monitor where time interval chunk has been fixed to one hour inside the date interval requested
+        and with one file per page.
+
+        In the 2022-07-01/19/MACS/AzimuthAxis/position/
+            2022-07-01_19_00_00.2022-07-01_20_00_00.MACS.AzimuthAxis.position.csv.gz file are the
+        samples for one monitor between the time interval chunk filtered by date interval and similar values.
+
+        In the 2022-07-01/19/summary/
+            2022-07-01_19_00_00.2022-07-01_20_00_00.following_error_study.summary.cvs.gz are the
+        samples for all monitors between the time interval chunk filtered by date interval and similar values.
+
+        In the 2022-07-01/summary/
+            2022-07-01_19_00_00.2022-07-01_19_00_10.following_error_study.summary.cvs.gz are all the
+        samples for all monitors filtered by date interval and similar values.
+
+
+        :param date_ini: The search filtered request initial date and time.
+        :param date_end: The search filtered  request end date and time.
+
+        :return: a data frame filtering the similar values base on epsilon monitor param and grouping several monitor.
+        """
         logging.info("Retrieve Summary from %s to %s", date_ini, date_end)
 
+        # Create a cache object
         a_cache = cache.CacheSummary(self._path,
                                      date_ini, date_end,
                                      self._query_name, self._query)
 
         if not self._clean_cache and a_cache.is_data_frame_cached():
             logging.info("Retrieve summary hourly from cache")
-
             data_frame = a_cache.data_frame_from_cache()
         else:
             logging.info("Retrieve summary hourly from API call")
-
             data_frames_monitors = []
             time_intervals = _make_time_intervals(date_ini, date_end)
             for time_interval in time_intervals:
                 logging.info("Retrieve hourly from %s to %s", time_interval[0], time_interval[1])
-                data_frame = self.retrieve_summary_hourly(time_interval[0], time_interval[1], date_ini, date_end)
+                data_frame = self.retrieve_summary_chunk(time_interval[0], time_interval[1], date_ini, date_end)
                 data_frames_monitors.append(data_frame)
             data_frame = _merge_data_frames(data_frames_monitors)
             a_cache.data_frame_to_cache(data_frame)
-
+        #todo cache this configuration
         if self._fillfw:
             data_frame.fillna(method='ffill', inplace=True)
             data_frame.dropna(inplace=True)
@@ -166,7 +299,23 @@ class RetrieveMonitor(object):
         return data_frame
 
     def sanity_query_check(self, a_query):
+        """
+        Check if a query is well-formed:
 
+            - Component, monitor, epsilon and type have been specified.
+            - Epsilon is int of float type.
+            - Type is one of the defined values: monitor, array or magnitude
+            - The monitor is defined in the system and the type is coherent
+
+        :param a_query: a query with the folling structure
+            {
+                "component": "MACS.AzimuthAxis",
+                "monitor": "position",
+                "epsilon": 0.5,
+                "type": "monitor"
+            }
+        :return: exception in case the query is not well-formed.
+        """
         if not isinstance(a_query, (list, tuple)):
             raise "A query must be a list of monitors."
         else:
@@ -189,16 +338,3 @@ class RetrieveMonitor(object):
                         raise "Monitor dimension incorrect"
                 except:
                     raise "Monitor does not exist in database."
-
-    # todo Check if monitor if active. This can be problematic if monitor was active at some point but not now.
-    # todo Inject the ID in the a_query. This mean later on it is not neccesary to ask for this value.
-    # todo Inject the unit in case the user does not defined ¿for doing this i will add support for units in query?.
-    # todo Inject epsilon in case the user does not defined, what happen if epsilon not in database, shall allow to not filter at all.
-    # todo ¿include subsampling option, check in this case if subsampling query make sanse with sample of monitor?
-    # todo ¿include range control for the values optinally? in this case populate ddbb correctly
-    # todo do chache of summary by day and store informatio to know if necessary to reproduce.
-    # todo Include a summary of the process of download.
-    # todo include a progress bar
-    # todo wildcard, all the active monitor for a device..
-    # todo reemplazar los NaN por valores iguales, antes y despues....
-    # todo provie a date list.
