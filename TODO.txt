@@ -1,3 +1,10 @@
+- Make documentation: code, examples and README.
+- Management of empty data frames.
+- Make sanity check of date intervals.
+- Allow to work with different chunk size, now it is one hour.
+- Allow different way of specify rage interval: one day, one week, one mouth, one year, list of date...
+- Review the rest of TODO list:
+
 Check if monitor if active. This can be problematic if monitor was active at some point but not now.
 Inject the ID in the a_query. This mean later on it is not neccesary to ask for this value.
 Inject the unit in case the user does not defined ¿for doing this i will add support for units in query?.
@@ -9,11 +16,3 @@ Include a summary of the process of download.
 include a progress bar
 wildcard, all the active monitor for a device..
 reemplazar los NaN por valores iguales, antes y despues....
-provie a date list.
-make documentation
-gestionar empty dataframes.
-hacer sanity check para time interval.
-Incluir variacion en time intervals.
-Incluir parametro de tamaño de chunk, o no utilizarlo en abosoluto.
-
-    
