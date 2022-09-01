@@ -14,12 +14,13 @@ class RetrieveMonitor(object):
     """
     A class used to make a high level request to the Monitor Manager Web Report, with the following functionality:
 
+        - Simple interface to extract with the minimum requery information complex data.
         - Cache management to optimize the time necessary to obtain the data.
-        - Pagination of the result.
+        - Pagination of the result to treat with large volume of data.
         - Filtering similar values base on epsilon value.
-        - Treatment of all monitor data type in a uniform way: n-dimension monitor and enumerates
+        - Treatment of all monitor data type in a uniform way: n-dimension monitor and enumerates.
         - Integration with Pandas to generate Data Frame to easily do data science with tabular data.
-        - Integrity check of the request.
+        - Integrity sanity check of the request.
     """
     def __init__(self, host, port, q_query, q_name, q_clean_cache=False, q_fillfw=False):
         self.request = Report(host, port)
