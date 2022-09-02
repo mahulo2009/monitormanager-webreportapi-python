@@ -47,7 +47,7 @@
 <li class="toctree-l4"><a class="reference internal" href="mmwebreport.retrieve.html">mmwebreport.retrieve package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="mmwebreport.html#module-contents">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mmwebreport.html#module-mmwebreport">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -85,17 +85,331 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
-<section id="mmwebreport-core-api-module">
-<h2>mmwebreport.core.api module<a class="headerlink" href="#mmwebreport-core-api-module" title="Permalink to this heading"></a></h2>
+<section id="module-mmwebreport.core.api">
+<span id="mmwebreport-core-api-module"></span><h2>mmwebreport.core.api module<a class="headerlink" href="#module-mmwebreport.core.api" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Cursor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mmwebreport.core.api.</span></span><span class="sig-name descname"><span class="pre">Cursor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Cursor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class used to iterate over the pages of a request response from the Monitor Manager Web Report Backend.
+Each pages will consist of a maximum of _DEFAULT_SAMPLES_PER_PAGE samples.</p>
+<p>It is important to notice that the iterator does not execute the request, instead an Executor is returned that
+must be explicit invoked to run the query.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Cursor.size">
+<span class="sig-name descname"><span class="pre">size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Cursor.size" title="Permalink to this definition"></a></dt>
+<dd><p>Accessor method to the size of iterator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the number of pages.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Report">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mmwebreport.core.api.</span></span><span class="sig-name descname"><span class="pre">Report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Report" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Invoke the monitor manager backend Api Rest:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Get list of components.</p></li>
+<li><p>Get detail description for a component.</p></li>
+<li><p>Get configuration of a monitor.</p></li>
+<li><p>Return metadata for a query report: number of pages, samples per page…</p></li>
+<li><p>Return a cursor to iterate over the samples result for a set of monitors inside an interval.</p></li>
+<li><p>Return a cursor to iterate over the samples result for a named query inside an interval.</p></li>
+</ul>
+<p>A query is defined using a dictionary object as follow:</p>
+<blockquote>
+<div><dl>
+<dt>query =</dt><dd><dl>
+<dt>[</dt><dd><dl class="simple">
+<dt>{</dt><dd><p>“component”: “”,
+“monitor”: “”,
+“epsilon”: ,
+“type”: “”</p>
+</dd>
+</dl>
+<p>}</p>
+</dd>
+</dl>
+<p>]</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Where:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>component:  The component name following GCS convention but replacing slash with dot. For example,</dt><dd><p>MACS.AzimuthAxis.</p>
+</dd>
+</dl>
+<p>monitor:    The monitor name following GCS convention. For example: position.</p>
+<p>epsilon:    If different from 0, a value used to filter consecutive similar samples from a query resutl.</p>
+<dl class="simple">
+<dt>type:       The typ of monitor. It can be monitor for one-dimensional monitor, array for n-dimensional</dt><dd><p>monitor and magnitude for monitor of type enumerated.</p>
+</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Report.get_component">
+<span class="sig-name descname"><span class="pre">get_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_component</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Report.get_component" title="Permalink to this definition"></a></dt>
+<dd><p>Given a component, return monitors and magnitudes for this component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>q_component</strong> – the component name</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>the configuration of a component in json format. The output format is:</p>
+<dl class="simple">
+<dt>{</dt><dd><p>‘id’: ‘’
+‘name’: ‘’
+‘className’: ‘’
+‘magnitudeDescription’: []
+‘monitorDescription’ : []</p>
+</dd>
+</dl>
+<p>}</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Report.get_components">
+<span class="sig-name descname"><span class="pre">get_components</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Report.get_components" title="Permalink to this definition"></a></dt>
+<dd><p>Return the list of components</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Report.get_monitor_configuration">
+<span class="sig-name descname"><span class="pre">get_monitor_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_component</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_monitor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'monitor'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Report.get_monitor_configuration" title="Permalink to this definition"></a></dt>
+<dd><p>Given a component and a monitor return the monitor configuration</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q_component</strong> – the component name.</p></li>
+<li><p><strong>q_monitor</strong> – the monitor name</p></li>
+<li><p><strong>q_type</strong> – the type, it can be monitor or magnitude</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>the monitor configuration in json format. The output format is:</p>
+<dl>
+<dt>{</dt><dd><p>‘id’: ‘’
+‘magnitude: ‘’
+‘dimension_x’ : ‘’
+‘dimension_y’ : ‘’
+‘description’ : ‘’
+‘type’ : ‘’
+‘unit’ : ‘’
+‘config’ :  {</p>
+<blockquote>
+<div><blockquote>
+<div><p>’id’: ‘’
+‘active’ : ‘’
+‘epsilon’ : ‘’
+‘persite_by_default’ : ‘’
+‘propagate_period’ : ‘’
+‘storage_period’ : ‘’
+‘monitorRanges’ : {…}</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>}</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Report.search">
+<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_data_ini</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_data_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Report.search" title="Permalink to this definition"></a></dt>
+<dd><p>Given the temporal parameters of a search request, and the query itself, return a Cursor to iterator over
+the query result. It is important to notice that the iterator does not execute the request, instead an Executor
+is returned that must be explicit invoked to run the query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q_data_ini</strong> – The search request initial date and time.</p></li>
+<li><p><strong>q_data_end</strong> – The search request end date and time.</p></li>
+<li><p><strong>q_query</strong> – <p>The query itself has the following format:
+query =</p>
+<blockquote>
+<div><dl>
+<dt>[</dt><dd><dl class="simple">
+<dt>{</dt><dd><p>“component”: “”,
+“monitor”: “”,
+“epsilon”: ,
+“type”: “”</p>
+</dd>
+</dl>
+<p>}</p>
+</dd>
+</dl>
+<p>]</p>
+</div></blockquote>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a :Cursor to iterate over the result.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Report.search_info">
+<span class="sig-name descname"><span class="pre">search_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_data_ini</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_data_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_component</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_monitor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'monitor'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Report.search_info" title="Permalink to this definition"></a></dt>
+<dd><p>Given the parameters of a search request, return the metadata information about this query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q_data_ini</strong> – The search request initial date and time.</p></li>
+<li><p><strong>q_data_end</strong> – The search request end date and time.</p></li>
+<li><p><strong>q_component</strong> – The search request component.</p></li>
+<li><p><strong>q_monitor</strong> – The search request monitor of the component.</p></li>
+<li><p><strong>q_type</strong> – The search request type, it can be: monitor, array or magnitude.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>the search request metadata in json format. The output format is:
+{</p>
+<blockquote>
+<div><p>’length’: ‘’
+‘totalPages: ‘’
+‘totalSamples’ : ‘’</p>
+</div></blockquote>
+<p>}</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Report.search_stored_info">
+<span class="sig-name descname"><span class="pre">search_stored_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_data_ini</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_data_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_query_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Report.search_stored_info" title="Permalink to this definition"></a></dt>
+<dd><p>Given the temporal parameters of a search request, and the query stored name, return the metadata
+information about this query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q_data_ini</strong> – The search request initial date and time.</p></li>
+<li><p><strong>q_data_end</strong> – The search request end date and time.</p></li>
+<li><p><strong>q_query_name</strong> – The query stored name. This query must exits, and it can be created with the Monitor</p></li>
+</ul>
+</dd>
+</dl>
+<p>Manager Web Report frontend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>the search request metadata in json format. The output format is:
+{</p>
+<blockquote>
+<div><p>’length’: ‘’
+‘totalPages: ‘’
+‘totalSamples’ : ‘’</p>
+</div></blockquote>
+<p>}</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Report.search_stored_query">
+<span class="sig-name descname"><span class="pre">search_stored_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_data_ini</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_data_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_query_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Report.search_stored_query" title="Permalink to this definition"></a></dt>
+<dd><p>Given the temporal parameters of a search request, and the query stored name, return a Cursor to iterator over
+the query result. It is important to notice that the iterator does not execute the request, instead an Executor
+is returned that must be explicit invoked to run the query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q_data_ini</strong> – The search request initial date and time.</p></li>
+<li><p><strong>q_data_end</strong> – The search request end date and time.</p></li>
+<li><p><strong>q_query_name</strong> – The query stored name. This query must exits, and it can be created with the Monitor</p></li>
+</ul>
+</dd>
+</dl>
+<p>Manager Web Rerpot frontend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a :Cursor to iterate over the result.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.api.Report.single_search">
+<span class="sig-name descname"><span class="pre">single_search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_data_ini</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_data_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_component</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_monitor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'monitor'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.api.Report.single_search" title="Permalink to this definition"></a></dt>
+<dd><p>Given the temporal parameters of a search request, and the query itself, return a Cursor to iterator over
+the query result. It is important to notice that the iterator does not execute the request, instead an Executor
+is returned that must be explicit invoked to run the query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q_data_ini</strong> – The search request initial date and time.</p></li>
+<li><p><strong>q_data_end</strong> – The search request end date and time.</p></li>
+<li><p><strong>q_component</strong> – The search request component name.</p></li>
+<li><p><strong>q_monitor</strong> – The search request monitor name.</p></li>
+<li><p><strong>q_type</strong> – The search request type, it can be: monitor, array or magnitude.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a :Cursor to iterate over the result.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="mmwebreport-core-executor-module">
-<h2>mmwebreport.core.executor module<a class="headerlink" href="#mmwebreport-core-executor-module" title="Permalink to this heading"></a></h2>
+<section id="module-mmwebreport.core.executor">
+<span id="mmwebreport-core-executor-module"></span><h2>mmwebreport.core.executor module<a class="headerlink" href="#module-mmwebreport.core.executor" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mmwebreport.core.executor.Executor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mmwebreport.core.executor.</span></span><span class="sig-name descname"><span class="pre">Executor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.executor.Executor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class used to represent a Http request to the Monitor Manager Web Report Backend</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.executor.Executor.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.executor.Executor.run" title="Permalink to this definition"></a></dt>
+<dd><p>Make a Http request to the Monitor Manager Web Report Backend and return a Response object. In case
+of HTTP request error it returns an exception.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="mmwebreport-core-response-module">
-<h2>mmwebreport.core.response module<a class="headerlink" href="#mmwebreport-core-response-module" title="Permalink to this heading"></a></h2>
+<section id="module-mmwebreport.core.response">
+<span id="mmwebreport-core-response-module"></span><h2>mmwebreport.core.response module<a class="headerlink" href="#module-mmwebreport.core.response" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mmwebreport.core.response.Response">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mmwebreport.core.response.</span></span><span class="sig-name descname"><span class="pre">Response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.response.Response" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class used to represent a response from the Monitor Manager Web Report Backend</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.response.Response.to_csv">
+<span class="sig-name descname"><span class="pre">to_csv</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.response.Response.to_csv" title="Permalink to this definition"></a></dt>
+<dd><p>Convert the raw text coming from report request to the Monitor Manager Web Report Backend to csv format</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mmwebreport.core.response.Response.to_json">
+<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mmwebreport.core.response.Response.to_json" title="Permalink to this definition"></a></dt>
+<dd><p>Convert the raw text coming from report request to the Monitor Manager Web Report Backend to json format</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this heading"></a></h2>
+<section id="module-mmwebreport.core">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-mmwebreport.core" title="Permalink to this heading"></a></h2>
 </section>
 </section>
 
