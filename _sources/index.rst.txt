@@ -10,7 +10,7 @@ Welcome to mmwebreportapi's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   mmwebreport.rst
+   modules.rst
 
 
 Indices and tables
