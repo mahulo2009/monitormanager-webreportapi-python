@@ -4,7 +4,6 @@ on:
   push:
     branches:
     - master
-    - code_doc_generation
 
 jobs:
 
