@@ -16,3 +16,4 @@ Include a summary of the process of download.
 include a progress bar
 wildcard, all the active monitor for a device..
 reemplazar los NaN por valores iguales, antes y despues....
+Añadir depdendencias: pandas. requests

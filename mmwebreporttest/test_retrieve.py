@@ -193,7 +193,7 @@ class TestRetrieveMonitor(TestCase):
 
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "march_2022_following_error", q_clean_cache=False)
 
-        data_frame = retrieve.retrieve_summary_hourly(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
+        data_frame = retrieve.retrieve_summary_chunk(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
                                                       datetime.strptime("2022-07-01 19:00:10", "%Y-%m-%d %H:%M:%S"),
                                                       datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
                                                       datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"))
