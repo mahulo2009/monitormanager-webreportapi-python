@@ -1,8 +1,15 @@
+- Allow different way of specify rage interval: one day, one week, one mouth, one year, list of date...
+
+    If the time interval it is not defined is assumed the whole day.
+    Include a date ini and date end query type.
+
+
+
+
 - Make documentation: code, examples and README.
 - Management of empty data frames.
 - Make sanity check of date intervals.
 - Allow to work with different chunk size, now it is one hour.
-- Allow different way of specify rage interval: one day, one week, one mouth, one year, list of date...
 - Review the rest of TODO list:
 
 Check if monitor if active. This can be problematic if monitor was active at some point but not now.

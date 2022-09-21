@@ -1,10 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+
 from unittest import TestCase
 
 import pandas as pd
 import logging
 
-from mmwebreport.retrieve.processing import _remove_similar_consecutive_values, _make_time_intervals
+from mmwebreport.retrieve.processing import _remove_similar_consecutive_values, _make_time_intervals, \
+    _make_time_intervals_by_day, _make_time_intervals_by_week, _make_time_intervals_by_month, \
+    _make_time_intervals_by_year
 from mmwebreport.retrieve.retrieve import RetrieveMonitor
 
 
@@ -194,9 +197,9 @@ class TestRetrieveMonitor(TestCase):
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "march_2022_following_error", q_clean_cache=False)
 
         data_frame = retrieve.retrieve_summary_chunk(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
-                                                      datetime.strptime("2022-07-01 19:00:10", "%Y-%m-%d %H:%M:%S"),
-                                                      datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
-                                                      datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"))
+                                                     datetime.strptime("2022-07-01 19:00:10", "%Y-%m-%d %H:%M:%S"),
+                                                     datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
+                                                     datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"))
 
         print(data_frame)
 
@@ -392,3 +395,66 @@ class TestRetrieveMonitor(TestCase):
         print(data_frame)
         # todo me está devolviendo todos los valores, fuera de rango de tiempo, lo cacheado por fechas.
         # se está liando con otros summary de mismo rango de fechas....
+
+    def test_make_time_intervals_by_date(self):
+        logging.basicConfig(level=logging.INFO)
+
+        date_range = \
+            {
+                "date": "2022-07-01",
+                "time_interval":
+                    {
+                        "time_ini": "07:20:10",
+                        "time_end": "03:23:14"
+                    }
+            }
+
+        ti = _make_time_intervals_by_day(date_range, "30min")
+
+    def test_make_time_intervals_by_week(self):
+        logging.basicConfig(level=logging.INFO)
+
+        week = \
+            {
+                "date": "2022-W2",
+                "time_interval":
+                    {
+                        "time_ini": "23:10:00",
+                        "time_end": "01:00:10"
+                    }
+            }
+
+        ti = _make_time_intervals_by_week(week, "30min")
+        print(ti)
+
+    def test_make_time_intervals_by_month(self):
+        logging.basicConfig(level=logging.INFO)
+
+        month = \
+            {
+                "date": "2022-01",
+                "time_interval":
+                    {
+                        "time_ini": "22:00:00",
+                        "time_end": "01:00:10"
+                    }
+            }
+
+        ti = _make_time_intervals_by_month(month, "30min")
+        print(ti)
+
+    def test_make_time_intervals_by_year(self):
+        logging.basicConfig(level=logging.INFO)
+
+        year = \
+            {
+                "date": "2022",
+                "time_interval":
+                    {
+                        "time_ini": "22:01:00",
+                        "time_end": "01:00:10"
+                    }
+            }
+
+        ti = _make_time_intervals_by_year(year, "30min")
+        print(ti)
