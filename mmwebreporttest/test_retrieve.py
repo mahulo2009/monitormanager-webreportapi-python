@@ -409,7 +409,17 @@ class TestRetrieveMonitor(TestCase):
                     }
             }
 
-        ti = _make_time_intervals_by_day(date_range, "30min")
+        ti = _make_time_intervals_by_day(date_range, "30min") 
+
+    def test_make_time_intervals_by_date_no_time_interval(self):
+        logging.basicConfig(level=logging.INFO)
+
+        date_range = \
+            {
+                "date": "2022-07-01"
+            }
+
+        ti = _make_time_intervals_by_day(date_range, "30min") 
 
     def test_make_time_intervals_by_week(self):
         logging.basicConfig(level=logging.INFO)
@@ -425,7 +435,16 @@ class TestRetrieveMonitor(TestCase):
             }
 
         ti = _make_time_intervals_by_week(week, "30min")
-        print(ti)
+
+    def test_make_time_intervals_by_week_no_interval(self):
+        logging.basicConfig(level=logging.INFO)
+
+        week = \
+            {
+                "date": "2022-W2"
+            }
+
+        ti = _make_time_intervals_by_week(week, "30min")
 
     def test_make_time_intervals_by_month(self):
         logging.basicConfig(level=logging.INFO)
@@ -441,7 +460,16 @@ class TestRetrieveMonitor(TestCase):
             }
 
         ti = _make_time_intervals_by_month(month, "30min")
-        print(ti)
+
+    def test_make_time_intervals_by_month_no_interval(self):
+        logging.basicConfig(level=logging.INFO)
+
+        month = \
+            {
+                "date": "2022-01",
+            }
+
+        ti = _make_time_intervals_by_month(month, "30min")
 
     def test_make_time_intervals_by_year(self):
         logging.basicConfig(level=logging.INFO)

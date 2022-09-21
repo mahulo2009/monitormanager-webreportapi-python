@@ -104,8 +104,14 @@ def _make_time_intervals_by_day(date_range, chunk_feq):
     date_ini = pd.to_datetime(date_range['date'], format="%Y-%m-%d %H:%M:%S")
     date_end = pd.to_datetime(date_range['date'], format="%Y-%m-%d %H:%M:%S")
     # Parse time.
-    time_ini = pd.to_datetime(date_range['time_interval']['time_ini'], format="%H:%M:%S")
-    time_end = pd.to_datetime(date_range['time_interval']['time_end'], format="%H:%M:%S")
+
+    if 'time_interval' in date_range:
+        time_ini = pd.to_datetime(date_range['time_interval']['time_ini'], format="%H:%M:%S")
+        time_end = pd.to_datetime(date_range['time_interval']['time_end'], format="%H:%M:%S")
+    else:
+        date_end = date_end + pd.DateOffset(1)
+        time_ini = pd.Timestamp(datetime(date_ini.year, date_ini.month, date_ini.day, 0, 0, 0))
+        time_end = pd.Timestamp(datetime(date_ini.year, date_ini.month, date_ini.day, 0, 0, 0))
 
     return _make_time_intervals_by_date_core(date_ini, time_ini, date_end, time_end, chunk_feq)
 
@@ -113,8 +119,14 @@ def _make_time_intervals_by_day(date_range, chunk_feq):
 def _make_time_intervals_by_week(date_range, chunk_feq):
     date_ini = pd.to_datetime(date_range['date'] + "-1", format="%G-W%V-%u")
 
-    time_ini = pd.to_datetime(date_range['time_interval']['time_ini'], format="%H:%M:%S")
-    time_end = pd.to_datetime(date_range['time_interval']['time_end'], format="%H:%M:%S")
+    date_offset = pd.DateOffset(0)
+    if 'time_interval' in date_range:
+        time_ini = pd.to_datetime(date_range['time_interval']['time_ini'], format="%H:%M:%S")
+        time_end = pd.to_datetime(date_range['time_interval']['time_end'], format="%H:%M:%S")
+    else:        
+        date_offset = pd.DateOffset(1)
+        time_ini = pd.Timestamp(datetime(date_ini.year, date_ini.month, date_ini.day, 0, 0, 0))
+        time_end = pd.Timestamp(datetime(date_ini.year, date_ini.month, date_ini.day, 0, 0, 0))
 
     time_intervals = []
 
@@ -122,7 +134,7 @@ def _make_time_intervals_by_week(date_range, chunk_feq):
     for offset in range(0, 7):
         print("---")
         time_intervals += _make_time_intervals_by_date_core(date_pivot, time_ini,
-                                                            date_pivot, time_end,
+                                                            date_pivot + date_offset, time_end,
                                                             chunk_feq)
         date_pivot += pd.DateOffset(1)
 
