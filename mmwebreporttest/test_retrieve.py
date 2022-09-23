@@ -7,7 +7,7 @@ import logging
 
 from mmwebreport.retrieve.processing import _remove_similar_consecutive_values, _make_time_intervals, \
     _make_time_intervals_by_day, _make_time_intervals_by_week, _make_time_intervals_by_month, \
-    _make_time_intervals_by_year
+    _make_time_intervals_by_year, _make_time_intervals_by_day_range
 from mmwebreport.retrieve.retrieve import RetrieveMonitor
 
 
@@ -277,10 +277,20 @@ class TestRetrieveMonitor(TestCase):
 
             ]
 
+        date_range = \
+            {
+                "date": "2022-07-01",
+                "time_interval":
+                    {
+                        "time_ini": "07:20:10",
+                        "time_end": "03:23:14"
+                    }
+            }
+
+
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "march_2022_following_error", q_clean_cache=False)
 
-        data_frame = retrieve.retrieve_summary(datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
-                                               datetime.strptime("2022-07-01 19:00:10", "%Y-%m-%d %H:%M:%S"))
+        data_frame = retrieve.retrieve_summary(date_range)
 
         print(data_frame)
 
@@ -409,7 +419,34 @@ class TestRetrieveMonitor(TestCase):
                     }
             }
 
-        ti = _make_time_intervals_by_day(date_range, "30min") 
+        ti = _make_time_intervals_by_day(date_range, "30min")
+
+    def test_make_time_intervals_by_date_range(self):
+        logging.basicConfig(level=logging.INFO)
+
+        date_range = \
+            {
+                "date_ini": "2022-07-01",
+                "date_end": "2022-07-06",
+                "time_interval":
+                    {
+                        "time_ini": "23:20:10",
+                        "time_end": "00:23:14"
+                    }
+            }
+
+        ti = _make_time_intervals_by_day_range(date_range, "1H")
+
+    def test_make_time_intervals_by_date_range_no_time_interval(self):
+        logging.basicConfig(level=logging.INFO)
+
+        date_range = \
+            {
+                "date_ini": "2022-07-01",
+                "date_end": "2022-07-06",
+            }
+
+        ti = _make_time_intervals_by_day_range(date_range, "1H")
 
     def test_make_time_intervals_by_date_no_time_interval(self):
         logging.basicConfig(level=logging.INFO)
@@ -419,7 +456,7 @@ class TestRetrieveMonitor(TestCase):
                 "date": "2022-07-01"
             }
 
-        ti = _make_time_intervals_by_day(date_range, "30min") 
+        ti = _make_time_intervals_by_day(date_range, "30min")
 
     def test_make_time_intervals_by_week(self):
         logging.basicConfig(level=logging.INFO)
@@ -485,4 +522,13 @@ class TestRetrieveMonitor(TestCase):
             }
 
         ti = _make_time_intervals_by_year(year, "30min")
-        print(ti)
+
+    def test_make_time_intervals_by_year_no_interval(self):
+        logging.basicConfig(level=logging.INFO)
+
+        year = \
+            {
+                "date": "2022",
+            }
+
+        ti = _make_time_intervals_by_year(year, "30min")
