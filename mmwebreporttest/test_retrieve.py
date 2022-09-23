@@ -5,6 +5,7 @@ from unittest import TestCase
 import pandas as pd
 import logging
 
+from mmwebreport.retrieve.daterange import DateRangeByDate
 from mmwebreport.retrieve.processing import _remove_similar_consecutive_values, _make_time_intervals, \
     _make_time_intervals_by_day, _make_time_intervals_by_week, _make_time_intervals_by_month, \
     _make_time_intervals_by_year, _make_time_intervals_by_day_range
@@ -287,7 +288,6 @@ class TestRetrieveMonitor(TestCase):
                     }
             }
 
-
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "march_2022_following_error", q_clean_cache=False)
 
         data_frame = retrieve.retrieve_summary(date_range)
@@ -409,17 +409,21 @@ class TestRetrieveMonitor(TestCase):
     def test_make_time_intervals_by_date(self):
         logging.basicConfig(level=logging.INFO)
 
-        date_range = \
-            {
-                "date": "2022-07-01",
-                "time_interval":
-                    {
-                        "time_ini": "07:20:10",
-                        "time_end": "03:23:14"
-                    }
-            }
+        # date_range = \
+        #     {
+        #         "date": "2022-07-01",
+        #         "time_interval":
+        #             {
+        #                 "time_ini": "07:20:10",
+        #                 "time_end": "03:23:14"
+        #             }
+        #     }
 
-        ti = _make_time_intervals_by_day(date_range, "30min")
+        date_range = DateRangeByDate("30min", "2022-07-01", ("07:20:10", "03:23:14"))
+        ti = date_range.make_interval()
+        print(ti)
+
+        # ti = _make_time_intervals_by_day(date_range, "30min")
 
     def test_make_time_intervals_by_date_range(self):
         logging.basicConfig(level=logging.INFO)
