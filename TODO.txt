@@ -1,13 +1,5 @@
-- Allow different way of specify rage interval: one day, one week, one mouth, one year, list of date...
-
-    If the time interval it is not defined is assumed the whole day.
-    Include a date ini and date end query type.
-
-
-
-
-- Make documentation: code, examples and README.
 - Management of empty data frames.
+- Make documentation: code, examples and README.
 - Make sanity check of date intervals.
 - Allow to work with different chunk size, now it is one hour.
 - Review the rest of TODO list:

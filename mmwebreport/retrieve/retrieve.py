@@ -6,8 +6,7 @@ import logging
 
 from mmwebreport.core.api import Report
 from mmwebreport.retrieve import cache
-from mmwebreport.retrieve.processing import _remove_similar_consecutive_values, _convert, _merge_data_frames, _filter, \
-    _make_time_intervals
+from mmwebreport.retrieve.processing import _remove_similar_consecutive_values, _convert, _merge_data_frames, _filter
 
 
 class RetrieveMonitor(object):
@@ -156,9 +155,9 @@ class RetrieveMonitor(object):
 
         return data_frame
 
-    def retrieve_summary(self, date_ini, date_end):
+    def retrieve_summary(self, date_range):
         """
-        Given date interval it creates a data frame with the result, containing several monitors, each one filtered by
+        Given date range it creates a data frame with the result, containing several monitors, each one filtered by
         similar values.
 
         It is important to notice than both date and time are interpreted as intervals and not as initial and end
@@ -170,11 +169,11 @@ class RetrieveMonitor(object):
             date_end: 2022-07-31 06:30:00
 
         The result will include all the sample between 2022 07 01 and 2022 07 31, where the time is between 19:00 and
-        06:00:00 and not samples from 2022-07-01 19:00:00 to 2022-07-31 06:00:00.
+        06:30:00 and not samples from 2022-07-01 19:00:00 to 2022-07-31 06:00:00.
 
         In addition, in order to optimize the time necessary to obtain the data, a different cache levels are used: raw
-        data from monitor manager web report (this raw data is fixed by individual monitor and with a chunk size of
-        one hour), filtered data between the date range where similar values are excluded, summary data collapsing all
+        data from monitor manager web report (this raw data is fixed by individual monitor and with a default chunk size
+        of one hour), filtered data between the date range where similar values are excluded, summary data collapsing all
         the monitors filtered in the previous step , and the final data for the date whole range.
 
         The query is defined using a dictionary object as follow:
@@ -271,17 +270,15 @@ class RetrieveMonitor(object):
             2022-07-01_19_00_00.2022-07-01_19_00_10.following_error_study.summary.cvs.gz are all the
         samples for all monitors filtered by date interval and similar values.
 
-
-        :param date_ini: The search filtered request initial date and time.
-        :param date_end: The search filtered  request end date and time.
+        :param date_range: A data range strategy. Range can be by date, date range, week, month, year.
 
         :return: a data frame filtering the similar values base on epsilon monitor param and grouping several monitor.
         """
-        logging.info("Retrieve Summary from %s to %s", date_ini, date_end)
+        logging.info("Retrieve Summary from with range %s", date_range)
 
         # Create a cache object
         a_cache = cache.CacheSummary(self._path,
-                                     date_ini, date_end,
+                                     date_range.get_date_init(), date_range.get_date_end(),
                                      self._query_name, self._query)
 
         if not self._clean_cache and a_cache.is_data_frame_cached():
@@ -290,14 +287,15 @@ class RetrieveMonitor(object):
         else:
             logging.info("Retrieve summary hourly from API call")
             data_frames_monitors = []
-            time_intervals = _make_time_intervals(date_ini, date_end)
+            time_intervals = date_range.make_interval()
             for time_interval in time_intervals:
                 logging.info("Retrieve hourly from %s to %s", time_interval[0], time_interval[1])
-                data_frame = self.retrieve_summary_chunk(time_interval[0], time_interval[1], date_ini, date_end)
+                data_frame = self.retrieve_summary_chunk(time_interval[0], time_interval[1],
+                                                         time_interval[2], time_interval[3])
                 data_frames_monitors.append(data_frame)
             data_frame = _merge_data_frames(data_frames_monitors)
             a_cache.data_frame_to_cache(data_frame)
-        #todo cache this configuration
+        # todo cache this configuration
         if self._fillfw:
             data_frame.fillna(method='ffill', inplace=True)
             data_frame.dropna(inplace=True)
