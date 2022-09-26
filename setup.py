@@ -15,5 +15,5 @@ setuptools.setup(
     url="https://github.com/mahulo2009/monitormanager-webreportapi-python.git",
     packages=['mmwebreport', 'mmwebreport.core', 'mmwebreport.retrieve'],
     install_requires=['pandas', 'requests'],
-    download_url="https://github.com/mahulo2009/monitormanager-webreportapi-python/archive/refs/tags/v1.0.0-alpha.tar.gz"
+    download_url="https://github.com/mahulo2009/monitormanager-webreportapi-python/archive/refs/tags/v1.0.1-alpha.tar.gz"
 )

@@ -61,7 +61,10 @@ class RetrieveMonitor(object):
                 data_frame = pd.read_csv(io.StringIO(c.run().to_csv()), sep=",")
                 a_cache.data_frame_to_cache(data_frame, page)
             data_frames_page.append(data_frame)
-        data_frame = pd.concat(data_frames_page, ignore_index=True, sort=False)
+        if len(data_frames_page) != 0:
+            data_frame = pd.concat(data_frames_page, ignore_index=True, sort=False)
+        else:
+            data_frame = pd.DataFrame([], columns=['TimeStampLong'])
 
         return data_frame
 
