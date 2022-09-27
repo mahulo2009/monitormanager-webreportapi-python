@@ -25,7 +25,7 @@ class RetrieveMonitor(object):
         self.request = Report(host, port)
         self._query = q_query
         self._query_name = q_name
-        self._path = os.path.expanduser("~") + "/.cache/webreport/monitormanagertest"
+        self._path = os.path.expanduser("~") + "/.cache/webreport/monitormanager"
         self._clean_cache = q_clean_cache
         self._fillfw = q_fillfw
 
