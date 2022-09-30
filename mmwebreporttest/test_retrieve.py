@@ -2,6 +2,9 @@ import logging
 from datetime import datetime
 from unittest import TestCase
 
+import pandas as pd
+from mmwebreport.retrieve.processing import _remove_similar_consecutive_values
+
 from mmwebreport.retrieve.daterange import DateRangeByDate, DateRangeByMonth, DateRangeByDateRange
 from mmwebreport.retrieve.retrieve import RetrieveMonitor
 
@@ -332,7 +335,7 @@ class TestRetrieveMonitor(TestCase):
                 {
                     "component": "ECS.UpperShutter",
                     "monitor": "actualPosition",
-                    "epsilon": 0.5,
+                    "epsilon": 0.05,
                     "type": "monitor"
                 },
                 {
@@ -367,10 +370,67 @@ class TestRetrieveMonitor(TestCase):
                 }
             ]
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "2022-03_following_error")
-        date_range = DateRangeByMonth("1H", "2022-03", ("20:00:00", "06:00:00"))
-        data_frame = retrieve.retrieve_summary(date_range)
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "2022-03_01_03_following_error",q_clean_cache=False)
+        date_range = DateRangeByDateRange("1H", "2022-03-01", "2022-03-03", ("20:00:00", "08:00:00"))
+        df = retrieve.retrieve_summary(date_range)
 
+        dome_upper_shutter = 'ECS.UpperShutter.actualPosition'
+        df_dome_upper_shutter = df[dome_upper_shutter].dropna()
+
+        to_remove = []
+
+        pivot = df_dome_upper_shutter.iloc[0]
+        for idx, row in df_dome_upper_shutter.iloc[1:].items():
+            if abs(pivot-row) <= 0.1:
+                to_remove.append(idx)
+            else:
+                pivot = row
+
+        df_dome_upper_shutter.drop(to_remove, axis=0, inplace=True)
+
+        v0 = None
+        v1 = None
+        sol = []
+        prev_ramp = ramp = 2
+        pivot = df_dome_upper_shutter.iloc[0]
+        for index, value in df_dome_upper_shutter.iloc[1:].items():
+            diff = value-pivot
+            if diff < 0:
+                ramp = -1
+                status = 'CLOSING'
+                position = 'INTERMEDIATE'
+            elif diff > 0:
+                ramp = 1
+                status = 'OPENING'
+                position = 'INTERMEDIATE'
+            else:
+                ramp = 0
+
+            if ramp != prev_ramp:
+                if v1:
+                    pos = df.loc[v1]['ECS.UpperShutter.actualPosition']
+                    if pos >= 87.0:
+                        status = 'STOPPED'
+                        position = 'OPEN'
+                    elif pos <= 0.2:
+                        status = 'STOPPED'
+                        position = 'CLOSED'
+                    else:
+                        status = 'STOPPED'
+                        position = 'INTERMEDIATE'
+
+                    sol.append((df.loc[v0]['TimeStampLong'],
+                                df.loc[v1]['TimeStampLong'],status,position))
+                v0 = index
+                v1 = index
+            else:
+                v1 = index
+
+            prev_ramp = ramp
+            pivot=value
+
+        for r in sol:
+            print(r)
     def test_retrive(self):
 
         logging.basicConfig(level=logging.INFO)

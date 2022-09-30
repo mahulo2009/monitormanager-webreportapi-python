@@ -169,7 +169,7 @@ class CacheSummaryHourly(Cache):
     def compare_query(self, query_1, query_2, index=0):
         equal = super().compare_query(query_1, query_2)
 
-        if len(query_1["query"]) > 0:
+        for index in range(0, len(query_1["query"])):
             equal = equal and (query_1["query"][index]["epsilon"] == query_2["query"][index]["epsilon"])
 
         return equal
@@ -193,7 +193,7 @@ class CacheSummary(Cache):
     def compare_query(self, query_1, query_2, index=0):
         equal = super().compare_query(query_1, query_2)
 
-        if len(query_1["query"]) > 0:
+        for index in range(0, len(query_1["query"])):
             equal = equal and (query_1["query"][index]["epsilon"] == query_2["query"][index]["epsilon"])
 
         return equal
