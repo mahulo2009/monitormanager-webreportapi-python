@@ -3,6 +3,22 @@ from datetime import datetime, timedelta
 import pandas as pd
 import logging
 
+
+def _remove_similar_consecutive_values_single_monitor(data_frame, epsilon):
+    if data_frame.size > 0:
+        to_remove = []
+
+        pivot = data_frame.iloc[0]
+        for idx, row in data_frame.iloc[1:].items():
+            if abs(pivot - row) <= epsilon:
+                to_remove.append(idx)
+            else:
+                pivot = row
+
+        data_frame.drop(to_remove, axis=0, inplace=True)
+
+    return data_frame
+
 def _remove_similar_consecutive_values(data_frame, monitor_name, epsilon):
     if data_frame.size > 0:
         to_remove = []
