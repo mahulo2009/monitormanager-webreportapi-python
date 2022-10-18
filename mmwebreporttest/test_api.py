@@ -74,6 +74,17 @@ class TestReport(TestCase):
 
         assert cursor
 
+    def test_search_state(self):
+
+        request = Report("calp-vwebrepo", "8081")
+        cursor = request.single_search(datetime.strptime("2022-09-14 00:00:00", "%Y-%m-%d %H:%M:%S"),
+                                       datetime.strptime("2022-09-15 00:00:00", "%Y-%m-%d %H:%M:%S"),
+                                       "EMIR/MCS/Csu", q_type="state")
+        for c in cursor:
+            print(c.run().to_csv())
+
+        assert cursor
+
     def test_search_monitor_set(self):
 
         query = \

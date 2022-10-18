@@ -238,19 +238,19 @@ class Report(object):
 
         :return: a :Cursor to iterate over the result.
         """
-        search_monitor_description \
-            = self._search_info(q_data_ini, q_data_end, q_query)
 
         url = self._base_url
         url = url + "/download"
         url = url + self._parse_search(q_data_ini, q_data_end, sampling=0)
         url = url + self._parse_monitors(q_query)
 
+        search_monitor_description \
+            = self._search_info(q_data_ini, q_data_end, q_query)
         a_cursor = Cursor(url, search_monitor_description["totalPages"])
 
         return a_cursor
 
-    def single_search(self, q_data_ini, q_data_end, q_component, q_monitor, q_type="monitor"):
+    def single_search(self, q_data_ini, q_data_end, q_component, q_monitor=None, q_epsilon=0.0, q_type="monitor"):
         """
         Given the temporal parameters of a search request, and the query itself, return a Cursor to iterator over
         the query result. It is important to notice that the iterator does not execute the request, instead an Executor
@@ -264,7 +264,7 @@ class Report(object):
 
         :return: a :Cursor to iterate over the result.
         """
-        query = [{"component": q_component, "monitor": q_monitor, "epsilon": 0.5, "type": q_type}]
+        query = [{"component": q_component, "monitor": q_monitor, "epsilon": q_epsilon, "type": q_type}]
         return self.search(q_data_ini, q_data_end, query)
 
     def search_stored_info(self, q_data_ini, q_data_end, q_query_name):
@@ -385,18 +385,24 @@ class Report(object):
 
             The format is: idmonitor=3623&idmonitor=3625
         """
+        # todo improve this code, depending on type do different things
         query_monitor_uri = ""
-
         if isinstance(a_query, (list, tuple)):
             for q in a_query:
-                m = self.get_monitor_configuration(q["component"].replace('.', '/'), q["monitor"], q["type"])
-                query_monitor_uri = query_monitor_uri + self._parse_single_monitor(m, q["type"]) + "&"
+                if q["type"] == "state":
+                    query_monitor_uri = query_monitor_uri + q["component"] + "&"
+                else:
+                    m = self.get_monitor_configuration(q["component"].replace('.', '/'), q["monitor"], q["type"])
+                    query_monitor_uri = query_monitor_uri + self._parse_single_monitor(m, q["type"]) + "&"
             query_monitor_uri = query_monitor_uri[:-1]
-        else:
-            m = self.get_monitor_configuration(a_query["component"].replace('.', '/'), a_query["monitor"],
-                                               a_query["type"])
 
-            query_monitor_uri = self._parse_single_monitor(a_query, m["type"])
+        else:
+            if a_query["type"] == "state":
+                query_monitor_uri = a_query["component"]
+            else:
+                m = self.get_monitor_configuration(a_query["component"].replace('.', '/'), a_query["monitor"],
+                                                   a_query["type"])
+                query_monitor_uri = self._parse_single_monitor(a_query, m["type"])
 
         return query_monitor_uri
 
