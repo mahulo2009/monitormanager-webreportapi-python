@@ -16,6 +16,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -67,9 +68,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="modules.html">mmwebreport</a> &raquo;</li>
-      <li>mmwebreport package</li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">mmwebreport</a></li>
+      <li class="breadcrumb-item active">mmwebreport package</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/mmwebreport.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -87,9 +88,39 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="mmwebreport.core.html">mmwebreport.core package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="mmwebreport.core.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mmwebreport.core.html#module-mmwebreport.core.api">mmwebreport.core.api module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mmwebreport.core.html#module-mmwebreport.core.executor">mmwebreport.core.executor module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mmwebreport.core.html#module-mmwebreport.core.response">mmwebreport.core.response module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mmwebreport.core.html#module-mmwebreport.core.api">mmwebreport.core.api module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Cursor"><code class="docutils literal notranslate"><span class="pre">Cursor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Cursor.size"><code class="docutils literal notranslate"><span class="pre">Cursor.size()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Report"><code class="docutils literal notranslate"><span class="pre">Report</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Report.get_component"><code class="docutils literal notranslate"><span class="pre">Report.get_component()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Report.get_components"><code class="docutils literal notranslate"><span class="pre">Report.get_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Report.get_monitor_configuration"><code class="docutils literal notranslate"><span class="pre">Report.get_monitor_configuration()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Report.search"><code class="docutils literal notranslate"><span class="pre">Report.search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Report.search_info"><code class="docutils literal notranslate"><span class="pre">Report.search_info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Report.search_stored_info"><code class="docutils literal notranslate"><span class="pre">Report.search_stored_info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Report.search_stored_query"><code class="docutils literal notranslate"><span class="pre">Report.search_stored_query()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.api.Report.single_search"><code class="docutils literal notranslate"><span class="pre">Report.single_search()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mmwebreport.core.html#module-mmwebreport.core.executor">mmwebreport.core.executor module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.executor.Executor"><code class="docutils literal notranslate"><span class="pre">Executor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.executor.Executor.run"><code class="docutils literal notranslate"><span class="pre">Executor.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mmwebreport.core.html#module-mmwebreport.core.response">mmwebreport.core.response module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.response.Response"><code class="docutils literal notranslate"><span class="pre">Response</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.response.Response.to_csv"><code class="docutils literal notranslate"><span class="pre">Response.to_csv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mmwebreport.core.html#mmwebreport.core.response.Response.to_json"><code class="docutils literal notranslate"><span class="pre">Response.to_json()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="mmwebreport.core.html#module-mmwebreport.core">Module contents</a></li>
 </ul>
 </li>
