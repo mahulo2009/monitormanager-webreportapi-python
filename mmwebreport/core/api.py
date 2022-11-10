@@ -391,7 +391,7 @@ class Report(object):
         if isinstance(a_query, (list, tuple)):
             for q in a_query:
                 if q["type"] == "state":
-                    query_monitor_uri = _QUERY_STATE_TOKEN + "=" + query_monitor_uri + q["component"] + "&"
+                    query_monitor_uri = _QUERY_STATE_TOKEN + "=" + query_monitor_uri + q["component"].replace('.', '/') + "&"
                 else:
                     m = self.get_monitor_configuration(q["component"].replace('.', '/'), q["monitor"], q["type"])
                     query_monitor_uri = query_monitor_uri + self._parse_single_monitor(m, q["type"]) + "&"
@@ -399,7 +399,7 @@ class Report(object):
 
         else:
             if a_query["type"] == "state":
-                query_monitor_uri = a_query["component"]
+                query_monitor_uri = a_query["component"].replace('.', '/')
             else:
                 m = self.get_monitor_configuration(a_query["component"].replace('.', '/'), a_query["monitor"],
                                                    a_query["type"])

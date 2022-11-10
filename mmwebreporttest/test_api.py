@@ -50,20 +50,6 @@ class TestReport(TestCase):
 
         assert cursor
 
-    def test_search_state(self):
-
-        request = Report("calp-vwebrepo", "8081")
-        cursor = request.single_search(datetime.strptime("2022-03-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
-                                       datetime.strptime("2022-03-01 20:01:00", "%Y-%m-%d %H:%M:%S"),
-                                       "OE/ObservingEngine", None, 0.0, q_type="state")
-
-
-        for c in cursor:
-            print(c.run().to_csv())
-
-        assert cursor
-
-
     def test_search_array_monitor(self):
 
         logging.basicConfig(level=logging.INFO)
