@@ -288,6 +288,7 @@ class TestRetrieveMonitor(TestCase):
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "2022-03_following_error")
         date_range = DateRangeByDate("1H", "2022-07-01", ("22:20:10", "00:23:14"))
         data_frame = retrieve.retrieve_summary(date_range)
+
     def test_retrive_by_date_range(self):
         logging.basicConfig(level=logging.INFO)
         query = \
@@ -370,7 +371,7 @@ class TestRetrieveMonitor(TestCase):
                 }
             ]
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "2022-03_01_03_following_error",q_clean_cache=False)
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "2022-03_01_03_following_error", q_clean_cache=False)
         date_range = DateRangeByDateRange("1H", "2022-03-01", "2022-03-03", ("20:00:00", "08:00:00"))
         df = retrieve.retrieve_summary(date_range)
 
@@ -381,7 +382,7 @@ class TestRetrieveMonitor(TestCase):
 
         pivot = df_dome_upper_shutter.iloc[0]
         for idx, row in df_dome_upper_shutter.iloc[1:].items():
-            if abs(pivot-row) <= 0.1:
+            if abs(pivot - row) <= 0.1:
                 to_remove.append(idx)
             else:
                 pivot = row
@@ -394,7 +395,7 @@ class TestRetrieveMonitor(TestCase):
         prev_ramp = ramp = 2
         pivot = df_dome_upper_shutter.iloc[0]
         for index, value in df_dome_upper_shutter.iloc[1:].items():
-            diff = value-pivot
+            diff = value - pivot
             if diff < 0:
                 ramp = -1
                 status = 'CLOSING'
@@ -420,17 +421,18 @@ class TestRetrieveMonitor(TestCase):
                         position = 'INTERMEDIATE'
 
                     sol.append((df.loc[v0]['TimeStampLong'],
-                                df.loc[v1]['TimeStampLong'],status,position))
+                                df.loc[v1]['TimeStampLong'], status, position))
                 v0 = index
                 v1 = index
             else:
                 v1 = index
 
             prev_ramp = ramp
-            pivot=value
+            pivot = value
 
         for r in sol:
             print(r)
+
     def test_retrive(self):
 
         logging.basicConfig(level=logging.INFO)
@@ -508,13 +510,11 @@ class TestRetrieveMonitor(TestCase):
 
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "2022-03_following_error")
 
-        #date_range = DateRangeByDateRange("1H", "2022-03-01", "2022-03-01", ("19:00:00", "07:00:00"))
-        date_range = DateRangeByDate("1H", "2022-03-01",  ("19:00:00", "07:00:00"))
+        # date_range = DateRangeByDateRange("1H", "2022-03-01", "2022-03-01", ("19:00:00", "07:00:00"))
+        date_range = DateRangeByDate("1H", "2022-03-01", ("19:00:00", "07:00:00"))
         data_frame = retrieve.retrieve_summary(date_range)
 
         print(data_frame.dtypes)
-
-
 
     def test_retrive_one_monitor(self):
 
@@ -532,7 +532,7 @@ class TestRetrieveMonitor(TestCase):
 
         retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "2022-03_01_test_retrieve_one_monitor")
 
-        date_range = DateRangeByDate("1H", "2022-10-01",  ("18:00:00", "23:00:00"))
+        date_range = DateRangeByDate("1H", "2022-10-01", ("18:00:00", "23:00:00"))
         data_frame = retrieve.retrieve_summary(date_range)
 
         print(data_frame)

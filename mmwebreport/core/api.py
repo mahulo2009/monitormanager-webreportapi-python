@@ -5,6 +5,7 @@ _QUERY_DESCRIPTION_MAGNITUDE_TOKEN = "magnitud"
 
 _QUERY_MONITOR_TOKEN = "idmonitor"
 _QUERY_MAGNITUDE_TOKEN = "idmagnitud"
+_QUERY_STATE_TOKEN = "idstate"
 
 _QUERY_PAGE_START_TOKEN = "page"
 _QUERY_PAGE_LENGTH_TOKEN = "length"
@@ -390,7 +391,7 @@ class Report(object):
         if isinstance(a_query, (list, tuple)):
             for q in a_query:
                 if q["type"] == "state":
-                    query_monitor_uri = query_monitor_uri + q["component"] + "&"
+                    query_monitor_uri = _QUERY_STATE_TOKEN + "=" + query_monitor_uri + q["component"] + "&"
                 else:
                     m = self.get_monitor_configuration(q["component"].replace('.', '/'), q["monitor"], q["type"])
                     query_monitor_uri = query_monitor_uri + self._parse_single_monitor(m, q["type"]) + "&"
