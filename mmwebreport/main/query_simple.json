@@ -1,0 +1,30 @@
+{
+    "query_config": {
+        "query_name": "following_error",
+        "query_fill_forwarder": 1
+    },
+
+    "query_date_range":
+            {
+                "type" : "DateRangeByDateRange",
+                "date_interval": ["2022-07-01","2022-07-01"],
+                "frequency": "1H",
+                "time_interval": ["22:20:10","00:23:14"]
+            },
+
+    "query_monitor_list" :
+        [
+            {
+                "component": "MACS.AzimuthAxis",
+                "monitor": "position",
+                "epsilon": 0.5,
+                "type": "monitor"
+            },
+            {
+                "component": "MACS.AzimuthAxis",
+                "monitor": "followingError",
+                "epsilon": 0.00002,
+                "type": "monitor"
+            }
+        ]
+}
