@@ -241,7 +241,7 @@ class Report(object):
 
         url = self._base_url
         url = url + "/download"
-        url = url + self._parse_search(q_data_ini, q_data_end, sampling=0)
+        url = url + self._parse_search(q_data_ini, q_data_end, sampling=None)
         url = url + self._parse_monitors(q_query)
 
         search_monitor_description \
@@ -433,7 +433,7 @@ class Report(object):
         """
 
         url = self._base_url + "/search/metadata"
-        url = url + self._parse_search(q_data_ini, q_data_end, sampling=0)
+        url = url + self._parse_search(q_data_ini, q_data_end, sampling=None)
         url = url + self._parse_monitors(q_query)
         url = url + "&" + _QUERY_PAGE_LENGTH_TOKEN + "=" + str(_DEFAULT_SAMPLES_PER_PAGE)
 

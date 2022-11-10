@@ -513,3 +513,26 @@ class TestRetrieveMonitor(TestCase):
         data_frame = retrieve.retrieve_summary(date_range)
 
         print(data_frame.dtypes)
+
+
+
+    def test_retrive_one_monitor(self):
+
+        logging.basicConfig(level=logging.INFO)
+
+        query = \
+            [
+                {
+                    "component": "MACS.AzimuthAxis",
+                    "monitor": "position",
+                    "epsilon": 0.5,
+                    "type": "monitor"
+                }
+            ]
+
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "2022-03_01_test_retrieve_one_monitor")
+
+        date_range = DateRangeByDate("1H", "2022-10-01",  ("18:00:00", "23:00:00"))
+        data_frame = retrieve.retrieve_summary(date_range)
+
+        print(data_frame)
