@@ -530,9 +530,9 @@ class TestRetrieveMonitor(TestCase):
                 }
             ]
 
-        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "2022-03_following_error")
+        retrieve = RetrieveMonitor("calp-vwebrepo", "8081", query, "2022-03_01_test_retrieve_one_monitor")
 
-        date_range = DateRangeByDate("1H", "2022-03-01",  ("19:00:00", "20:00:00"))
+        date_range = DateRangeByDate("1H", "2022-10-01",  ("18:00:00", "23:00:00"))
         data_frame = retrieve.retrieve_summary(date_range)
 
-        print(data_frame.dtypes)
+        print(data_frame)

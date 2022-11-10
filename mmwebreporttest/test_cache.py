@@ -4,6 +4,8 @@ from datetime import datetime
 from mmwebreport.retrieve import cache
 
 
+# todo update all the test with new version of module
+
 class Test(TestCase):
     def test_make_path_raw(self):
         path = cache.make_path_raw("~/.cache/webreport/monitormanager",
@@ -33,7 +35,7 @@ class Test(TestCase):
         path = cache.make_path_summary("~/.cache/webreport/monitormanager",
                                        datetime.strptime("2022-07-01 19:00:00", "%Y-%m-%d %H:%M:%S"),
                                        datetime.strptime("2022-07-01 20:00:00", "%Y-%m-%d %H:%M:%S"),
-                                             "study_0")
+                                       "study_0")
 
         print(path)
 
