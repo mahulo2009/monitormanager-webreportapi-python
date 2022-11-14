@@ -13,6 +13,7 @@ def Main():
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('command', type=str, choices=["report"])
     parser.add_argument('-q', '--query_file',
                         required=True,
                         type=str,
@@ -49,7 +50,11 @@ def Main():
 
     query_monitor_list = json_query["query_monitor_list"]
 
-    retrieve = RetrieveMonitor(_DEFAULT_HOST_NAME, _DEFAULT_HOST_PORT,
+    host_name = args.host_name if args.host_name is not None else _DEFAULT_HOST_NAME
+    port_name = args.port_name if args.port_name is not None else _DEFAULT_HOST_PORT
+
+    retrieve = RetrieveMonitor(host_name,
+                               port_name,
                                query_monitor_list,
                                query_name,
                                q_clean_cache=args.clean_cache,
